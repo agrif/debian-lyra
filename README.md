@@ -1,5 +1,5 @@
-Debian for Luckfox Lyra
-=======================
+Debian for Luckfox Lyra Boards
+==============================
 
 Get required sources:
 
@@ -20,3 +20,7 @@ Write image to SD card:
     bmaptool copy --removable-device \
         build/debian-trixie-luckfox-lyra-sd.img.xz \
         /dev/sdcard
+
+Connect over serial port. Username is `lyra`, password is
+`luckfox`. You will be prompted to change the default password after
+login.
