@@ -19,15 +19,10 @@ actions:
 
       - mountpoint: /
         partition: root
+        options: [ x-systemd.growfs ]
 
     partitions:
       # FIXME allow extlinux boot, allow root on other than partition 3
-      # - name: idblock
-      #   parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
-      #   fs: none
-      #   start: 64s # fixed address
-      #   end: 1087s # +512kiB
-
       - name: u-boot
         parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
         fs: none
@@ -50,12 +45,18 @@ actions:
         start: 548864s
         end: 100%
 
+      # morally this goes first, but right now partition order matters
+      - name: idblock
+        parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
+        fs: none
+        start: 64s # fixed address
+        end: 1087s # +512kiB
+
   - action: raw
     description: write idblock
     origin: recipe
     source: blobs/id-block.img
-    #partition: idblock
-    offset: 64s
+    partition: idblock
 
   - action: raw
     description: write u-boot
@@ -150,11 +151,12 @@ actions:
     recommends: true
     packages:
       - sudo
+      - systemd-repart
 
   - action: overlay
-    description: install custom systemd configuration
-    source: overlays/etc-systemd/
-    destination: /etc/systemd/
+    description: install custom configuration
+    source: overlays/etc/
+    destination: /etc/
 
   - action: run
     description: enable custom systemd units
