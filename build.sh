@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 #
 
 cp configs/u-boot/*_defconfig sources/u-boot/configs/
-cp configs/u-boot/*.dts? sources/u-boot/arch/arm/dts/
+cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
 
 (
     cd sources/u-boot/
