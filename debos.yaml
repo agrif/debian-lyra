@@ -150,6 +150,7 @@ actions:
     description: install extra packages
     recommends: true
     packages:
+      - fake-hwclock
       - sudo
       - systemd-repart
 
