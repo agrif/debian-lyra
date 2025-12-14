@@ -8,8 +8,8 @@ Get required sources:
 
 Install dependencies:
 
-    sudo apt-get install gcc-arm-none-eabi build-essential bmaptool \
-        debos xz-utils
+    sudo apt-get install bmaptool build-essential debos device-tree-compiler \
+        gcc-arm-none-eabi xz-utils
 
 Build image:
 
