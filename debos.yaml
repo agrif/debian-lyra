@@ -116,8 +116,6 @@ actions:
     description: update apt sources
     update: true
 
-  # FIXME locales, timezone
-
   - action: run
     description: set hostname
     chroot: true
@@ -153,6 +151,11 @@ actions:
       - fake-hwclock
       - sudo
       - systemd-repart
+
+  - action: run
+    description: set locale
+    chroot: true
+    command: update-locale LANG=C.UTF-8
 
   - action: overlay
     description: install custom configuration
