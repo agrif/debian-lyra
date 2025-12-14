@@ -55,13 +55,13 @@ actions:
   - action: raw
     description: write idblock
     origin: recipe
-    source: blobs/id-block.img
+    source: sources/u-boot/rk3506_idblock_v1.06.111.img
     partition: idblock
 
   - action: raw
     description: write u-boot
     origin: recipe
-    source: blobs/u-boot.img
+    source: sources/u-boot/uboot.img
     partition: u-boot
 
   - action: raw
@@ -180,9 +180,9 @@ actions:
   - action: run
     description: create bmap file
     postprocess: true
-    command: bmaptool create {{ $image }} -o {{ $image }}.bmap
+    command: bmaptool create ${ARTIFACTDIR}/{{ $image }} -o ${ARTIFACTDIR}/{{ $image }}.bmap
 
   - action: run
     description: compress image file
     postprocess: true
-    command: xz -f {{ $image }}
+    command: xz -f ${ARTIFACTDIR}/{{ $image }}

@@ -1,3 +1,2 @@
-/debian-*.img
-/debian-*.img.xz
-/debian-*.img.bmap
+# build directory
+/build
