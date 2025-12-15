@@ -11,15 +11,15 @@ actions:
     imagesize: 1536MiB
     partitiontype: gpt
     mountpoints:
-      # - mountpoint: /boot
-      #   partition: boot
+      - mountpoint: /boot
+        partition: boot
 
       - mountpoint: /
         partition: root
         options: [ x-systemd.growfs ]
 
     partitions:
-      # FIXME allow extlinux boot, allow root on other than partition 3
+      # FIXME allow root on other than partition 3
       - name: u-boot
         parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
         fs: none
@@ -29,8 +29,7 @@ actions:
       - name: boot
         fslabel: lyra boot
         parttype: BC13C2FF-59E6-4262-A352-B275FD6F7172
-        #fs: vfat
-        fs: none
+        fs: vfat
         start: 24576s
         end: 548863s # +256MiB
         flags: [ legacy_boot ]
@@ -61,27 +60,21 @@ actions:
     source: parts/u-boot.itb
     partition: u-boot
 
-  - action: raw
-    description: write kernel
-    origin: recipe
-    source: blobs/kernel.img
-    partition: boot
-
   # FIXME kernel packages
-  # - action: overlay
-  #   description: install /boot
-  #   source: boot/
-  #   destination: /boot/
+  - action: overlay
+    description: install /boot
+    source: overlays/boot/
+    destination: /boot/
 
-  # - action: overlay
-  #   description: install kernel
-  #   source: blobs/zImage
-  #   destination: /boot/zImage
+  - action: overlay
+    description: install kernel
+    source: blobs/zImage
+    destination: /boot/zImage
 
-  # - action: overlay
-  #   description: install device tree
-  #   source: blobs/device-tree.dtb
-  #   destination: /boot/device-tree.dtb
+  - action: overlay
+    description: install device tree
+    source: blobs/device-tree.dtb
+    destination: /boot/device-tree.dtb
 
   - action: unpack
     description: unpack root tarball
