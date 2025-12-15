@@ -48,4 +48,5 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
 # Debos
 #
 
-debos --artifactdir=build/ debos.yaml
+debos --artifactdir=build/ root-fs.yaml
+debos --artifactdir=build/ sd-image.yaml

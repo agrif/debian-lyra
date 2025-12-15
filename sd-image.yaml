@@ -1,8 +1,4 @@
 {{- $codename := or .codename "trixie" -}}
-{{- $hostname := or .hostname "luckfox" -}}
-{{- $username := or .username "lyra" -}}
-{{- $password := or .password "luckfox" -}}
-{{- $mirror := or .mirror "https://deb.debian.org/debian" -}}
 {{- $image := or .image (printf "luckfox-lyra-%s-sd.img" $codename) -}}
 
 architecture: armhf
@@ -31,7 +27,7 @@ actions:
         end: 24575s # +4MiB
 
       - name: boot
-        fslabel: {{ $hostname }}boot
+        fslabel: lyra boot
         parttype: BC13C2FF-59E6-4262-A352-B275FD6F7172
         #fs: vfat
         fs: none
@@ -40,7 +36,7 @@ actions:
         flags: [ legacy_boot ]
 
       - name: root
-        fslabel: {{ $hostname }} root
+        fslabel: lyra root
         parttype: 69DAD710-2CE4-4E3C-B16C-21A1D49ABED3
         fs: ext4
         start: 548864s
@@ -87,14 +83,10 @@ actions:
   #   source: blobs/device-tree.dtb
   #   destination: /boot/device-tree.dtb
 
-  - action: recipe
-    recipe: recipes/debootstrap.yaml
-    variables:
-      codename: {{ $codename }}
-      mirror: {{ $mirror }}
-      hostname: {{ $hostname }}
-      username: {{ $username }}
-      password: {{ $password }}
+  - action: unpack
+    description: unpack root tarball
+    file: parts/root.tar.xz
+    compression: xz
 
   - action: filesystem-deploy
     description: deploy filesystem image
