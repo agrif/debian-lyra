@@ -17,8 +17,7 @@ Build image:
 
 Write image to SD card:
 
-    bmaptool copy --removable-device \
-        build/debian-trixie-luckfox-lyra-sd.img.xz \
+    bmaptool copy --removable-device build/luckfox-lyra-trixie-sd.img.xz \
         /dev/sdcard
 
 Connect over serial port. Username is `lyra`, password is
