@@ -30,7 +30,7 @@ actions:
         end: 24575s # +4MiB
 
       - name: boot
-        fslabel: {{ $hostname | upper }}BOOT
+        fslabel: {{ $hostname }}boot
         parttype: BC13C2FF-59E6-4262-A352-B275FD6F7172
         #fs: vfat
         fs: none
