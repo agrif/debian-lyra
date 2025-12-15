@@ -54,14 +54,14 @@ actions:
 
   - action: raw
     description: write idblock
-    origin: recipe
-    source: sources/u-boot/rk3506_idblock_v1.06.111.img
+    origin: artifacts
+    source: parts/idblock.img
     partition: idblock
 
   - action: raw
     description: write u-boot
-    origin: recipe
-    source: sources/u-boot/uboot.img
+    origin: artifacts
+    source: parts/u-boot.itb
     partition: u-boot
 
   - action: raw
