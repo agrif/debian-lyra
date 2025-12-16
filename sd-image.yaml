@@ -95,7 +95,6 @@ actions:
     command: |
       cd /opt/lyra-packages
       apt-ftparchive packages . > Packages
-      apt-ftparchive sources . > Sources
       apt-ftparchive contents . > Contents
       apt-ftparchive release . > Release
       echo "deb [trusted=yes] file:/opt/lyra-packages/ ./" > /etc/apt/sources.list.d/lyra-packages.list

@@ -9,6 +9,7 @@ CODENAME=trixie
 JOBS=${JOBS:=$(nproc --all)}
 mkdir -p build/parts/
 mkdir -p build/packages/
+mkdir -p build/source-packages/
 
 #
 # idblock
@@ -69,7 +70,7 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
          KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
     rm linux.tar.gz
     mv ../linux-*.deb $R/build/packages/
-    mv ../linux-lyra* $R/build/packages/
+    mv ../linux-lyra* $R/build/source-packages/
 
     # build device tree
     cpp -nostdinc -undef -x assembler-with-cpp \
