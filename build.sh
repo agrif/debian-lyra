@@ -38,8 +38,9 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
     make -j${JOBS} CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error u-boot.itb
 
     # fix up op-tee load address
-    fdtput -t x u-boot.itb /images/optee entry 0x1000
-    fdtput -t x u-boot.itb /images/optee load 0x1000
+    sed -i 's/entry = <0x8400000>;/entry = <0x1000>;/' u-boot.its
+    sed -i 's/load = <0x8400000>;/load = <0x1000>;/' u-boot.its
+    ./tools/mkimage -f u-boot.its -E u-boot.itb
 
     mv u-boot.itb $R/build/parts/
 )
