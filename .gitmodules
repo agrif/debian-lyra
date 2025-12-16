@@ -1,10 +1,15 @@
-[submodule "u-boot"]
+[submodule "sources/rkbin"]
+	path = sources/rkbin
+	url = https://github.com/rockchip-linux/rkbin.git
+	shallow = true
+	ignore = dirty
+[submodule "sources/u-boot"]
 	path = sources/u-boot
 	url = https://github.com/rockchip-linux/u-boot.git
 	shallow = true
 	ignore = dirty
-[submodule "sources/rkbin"]
-	path = sources/rkbin
-	url = https://github.com/rockchip-linux/rkbin.git
+[submodule "sources/kernel"]
+	path = sources/kernel
+	url = https://github.com/rockchip-linux/kernel.git
 	shallow = true
 	ignore = dirty

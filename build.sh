@@ -46,6 +46,27 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
 )
 
 #
+# Kernel
+#
+
+(
+    cd sources/kernel/
+
+    # build kernel
+    make mrproper
+    cp $R/configs/kernel/rk3506_luckfox_defconfig .config
+    make ARCH=arm CROSS_COMPILE=arm-none-eabi- olddefconfig
+    make ARCH=arm CROSS_COMPILE=arm-none-eabi- -j${JOBS}
+    cp arch/arm/boot/zImage $R/build/parts/
+
+    # build device tree
+    cpp -nostdinc -undef -x assembler-with-cpp \
+        -I include/ -I arch/arm/boot/dts/rockchip/ \
+        $R/configs/kernel/rk3506g-luckfox-lyra.dts |
+        dtc -O dtb -o $R/build/parts/device-tree.dtb
+)
+
+#
 # Debos
 #
 
