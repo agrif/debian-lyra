@@ -15,8 +15,8 @@ jobs:
           sudo apt-get update
 
           # keep in sync with README.md
-          sudo apt-get install bmaptool build-essential debos device-tree-compiler \
-          gcc-arm-none-eabi lz4 xz-utils
+          sudo apt-get install bmaptool build-essential debhelper debos \
+          device-tree-compiler gcc-arm-none-eabi lz4 xz-utils
 
       - name: Build
         run: sudo ./build.sh

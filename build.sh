@@ -3,8 +3,12 @@ set -e
 R=$(realpath $(dirname "$0"))
 cd $R
 
+# set here because multiple things need to agree on this
+CODENAME=trixie
+
 JOBS=${JOBS:=$(nproc --all)}
 mkdir -p build/parts/
+mkdir -p build/packages/
 
 #
 # idblock
@@ -59,6 +63,14 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
     make ARCH=arm CROSS_COMPILE=arm-none-eabi- -j${JOBS}
     cp arch/arm/boot/zImage $R/build/parts/
 
+    # build kernel packages
+    rm .version
+    make ARCH=arm CROSS_COMPILE=arm-none-eabi- \
+         KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
+    rm linux.tar.gz
+    mv ../linux-*.deb $R/build/packages/
+    mv ../linux-lyra* $R/build/packages/
+
     # build device tree
     cpp -nostdinc -undef -x assembler-with-cpp \
         -I include/ -I arch/arm/boot/dts/rockchip/ \
@@ -70,5 +82,5 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
 # Debos
 #
 
-debos --artifactdir=build/ root-fs.yaml
-debos --artifactdir=build/ sd-image.yaml
+debos --artifactdir=build/ -t codename:$CODENAME root-fs.yaml
+debos --artifactdir=build/ -t codename:$CODENAME sd-image.yaml
