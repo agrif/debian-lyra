@@ -34,6 +34,7 @@ mkdir -p build/source-packages/
     make mrproper
     cp $R/configs/u-boot/rk3506_luckfox_defconfig .config
     cp $R/configs/u-boot/rk3506-luckfox.dts{,i} arch/arm/dts/
+    cp $R/configs/u-boot/evb_rk3506.h include/configs/
 
     # build u-boot
     make CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error olddefconfig
