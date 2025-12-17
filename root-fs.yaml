@@ -72,6 +72,7 @@ actions:
       - fake-hwclock
       - sudo
       - systemd-repart
+      - u-boot-menu
 
   - action: run
     description: set locale

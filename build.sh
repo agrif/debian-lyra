@@ -75,7 +75,6 @@ mkdir -p build/source-packages/
     rm linux.tar.gz
     mv ../linux-*.deb $R/build/packages/
     mv ../linux-lyra* $R/build/source-packages/
-    cp arch/arm/boot/dts/rockchip/rk3506g-luckfox-lyra.dtb $R/build/parts/
 
     # unstage dts
     git restore --staged arch/arm/boot/dts/rockchip/*.dts{,i}

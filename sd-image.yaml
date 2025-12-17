@@ -60,22 +60,14 @@ actions:
     source: parts/u-boot.itb
     partition: u-boot
 
-  # FIXME kernel packages
-  - action: overlay
-    description: install /boot
-    source: overlays/boot/
-    destination: /boot/
-
-  - action: overlay
-    description: install device tree
-    origin: artifacts
-    source: parts/rk3506g-luckfox-lyra.dtb
-    destination: /boot/rk3506g-luckfox-lyra.dtb
-
   - action: unpack
     description: unpack root tarball
     file: parts/root.tar.xz
     compression: xz
+
+  - action: filesystem-deploy
+    description: deploy filesystem image
+    setup-kernel-cmdline: false
 
   - action: overlay
     description: add local packages
@@ -94,15 +86,13 @@ actions:
       echo "deb [trusted=yes] file:/opt/lyra-packages/ ./" > /etc/apt/sources.list.d/lyra-packages.list
       echo "deb-src [trusted=yes] file:/opt/lyra-packages/ ./" >> /etc/apt/sources.list.d/lyra-packages.list
 
+  # note: must run *after* filesystem deploy, so that u-boot-update works right
   - action: apt
     description: install local packages
     update: true
     recommends: true
     packages:
       - linux-image-6.6.89+
-
-  - action: filesystem-deploy
-    description: deploy filesystem image
 
   - action: run
     description: create bmap file
