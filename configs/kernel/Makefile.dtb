@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0
+
+# We only ever need to build luckfox dtbs for this kernel.
+dtb-$(CONFIG_ARCH_ROCKCHIP) += \
+	rk3506g-luckfox-lyra.dtb

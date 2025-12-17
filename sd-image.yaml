@@ -69,8 +69,8 @@ actions:
   - action: overlay
     description: install device tree
     origin: artifacts
-    source: parts/device-tree.dtb
-    destination: /boot/device-tree.dtb
+    source: parts/rk3506g-luckfox-lyra.dtb
+    destination: /boot/rk3506g-luckfox-lyra.dtb
 
   - action: unpack
     description: unpack root tarball

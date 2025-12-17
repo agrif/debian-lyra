@@ -58,21 +58,26 @@ mkdir -p build/source-packages/
 (
     cd sources/kernel/
 
-    # build kernel
+    # prepare kernel
     make mrproper
     cp $R/configs/kernel/rk3506_luckfox_defconfig .config
+    cp $R/configs/kernel/*.dts{,i} arch/arm/boot/dts/rockchip/
+    cp $R/configs/kernel/Makefile.dtb arch/arm/boot/dts/rockchip/Makefile
+
+    # temporarily stage dts so deb-pkg picks it up
+    git add arch/arm/boot/dts/rockchip/*.dts{,i}
+
+    # build kernel
     make ARCH=arm CROSS_COMPILE=arm-none-eabi- olddefconfig
     make ARCH=arm CROSS_COMPILE=arm-none-eabi- -j${JOBS} \
          KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
     rm linux.tar.gz
     mv ../linux-*.deb $R/build/packages/
     mv ../linux-lyra* $R/build/source-packages/
+    cp arch/arm/boot/dts/rockchip/rk3506g-luckfox-lyra.dtb $R/build/parts/
 
-    # build device tree
-    cpp -nostdinc -undef -x assembler-with-cpp \
-        -I include/ -I arch/arm/boot/dts/rockchip/ \
-        $R/configs/kernel/rk3506g-luckfox-lyra.dts |
-        dtc -O dtb -o $R/build/parts/device-tree.dtb
+    # unstage dts
+    git restore --staged arch/arm/boot/dts/rockchip/*.dts{,i}
 )
 
 #
