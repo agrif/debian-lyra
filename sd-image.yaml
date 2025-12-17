@@ -67,12 +67,6 @@ actions:
     destination: /boot/
 
   - action: overlay
-    description: install kernel
-    origin: artifacts
-    source: parts/zImage
-    destination: /boot/zImage
-
-  - action: overlay
     description: install device tree
     origin: artifacts
     source: parts/device-tree.dtb

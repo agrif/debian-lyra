@@ -61,12 +61,7 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
     make mrproper
     cp $R/configs/kernel/rk3506_luckfox_defconfig .config
     make ARCH=arm CROSS_COMPILE=arm-none-eabi- olddefconfig
-    make ARCH=arm CROSS_COMPILE=arm-none-eabi- -j${JOBS}
-    cp arch/arm/boot/zImage $R/build/parts/
-
-    # build kernel packages
-    rm .version
-    make ARCH=arm CROSS_COMPILE=arm-none-eabi- \
+    make ARCH=arm CROSS_COMPILE=arm-none-eabi- -j${JOBS} \
          KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
     rm linux.tar.gz
     mv ../linux-*.deb $R/build/packages/
