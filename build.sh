@@ -27,15 +27,16 @@ mkdir -p build/source-packages/
 # U-Boot
 #
 
-cp configs/u-boot/*_defconfig sources/u-boot/configs/
-cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
-
 (
     cd sources/u-boot/
 
-    # build u-boot
+    # prepare u-boot
     make mrproper
-    make rk3506_luckfox_defconfig
+    cp $R/configs/u-boot/rk3506_luckfox_defconfig .config
+    cp $R/configs/u-boot/rk3506-luckfox.dts{,i} arch/arm/dts/
+
+    # build u-boot
+    make CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error olddefconfig
     make -j${JOBS} CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error
 
     # grab op-tee from rkbin, and create the u-boot FIT
@@ -47,7 +48,7 @@ cp configs/u-boot/*.dts{,i} sources/u-boot/arch/arm/dts/
     sed -i 's/load = <0x8400000>;/load = <0x1000>;/' u-boot.its
     ./tools/mkimage -f u-boot.its -E u-boot.itb
 
-    mv u-boot.itb $R/build/parts/
+    cp u-boot.itb $R/build/parts/
 )
 
 #
