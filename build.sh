@@ -69,8 +69,10 @@ mkdir -p build/source-packages/
     git add arch/arm/boot/dts/rockchip/*.dts{,i}
 
     # build kernel
+    echo "0" > .version # debian-revision minus 1 (e.g.. "0" yields 6.6.89-1)
     make ARCH=arm CROSS_COMPILE=arm-none-eabi- olddefconfig
     make ARCH=arm CROSS_COMPILE=arm-none-eabi- -j${JOBS} \
+         EXTRAVERSION=-lyra LOCALVERSION= \
          KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
     rm linux.tar.gz
     mv ../linux-*.deb $R/build/packages/
