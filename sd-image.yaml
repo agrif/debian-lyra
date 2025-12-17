@@ -29,7 +29,7 @@ actions:
       - name: boot
         fslabel: lyra boot
         parttype: BC13C2FF-59E6-4262-A352-B275FD6F7172
-        fs: vfat
+        fs: ext4
         start: 24576s
         end: 548863s # +256MiB
         flags: [ legacy_boot ]
