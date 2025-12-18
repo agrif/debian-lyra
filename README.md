@@ -1,6 +1,8 @@
 Debian for Luckfox Lyra Boards
 ==============================
 
+[![Build](https://github.com/agrif/debian-lyra/actions/workflows/build.yaml/badge.svg)](https://github.com/agrif/debian-lyra/actions/workflows/build.yaml)
+
 Get required sources:
 
     git submodule init
