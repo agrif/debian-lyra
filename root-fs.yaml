@@ -51,6 +51,7 @@ actions:
     recommends: true
     packages:
       - fake-hwclock
+      - initramfs-tools
       - lrzsz
       - sudo
       - systemd-repart
