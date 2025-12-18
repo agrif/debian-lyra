@@ -73,13 +73,7 @@ actions:
   - action: run
     description: generate and install repository for local packages
     chroot: true
-    command: |
-      cd /opt/lyra-packages
-      apt-ftparchive packages . > Packages
-      apt-ftparchive contents . > Contents
-      apt-ftparchive release . > Release
-      echo "deb [trusted=yes] file:/opt/lyra-packages/ ./" > /etc/apt/sources.list.d/lyra-packages.list
-      echo "deb-src [trusted=yes] file:/opt/lyra-packages/ ./" >> /etc/apt/sources.list.d/lyra-packages.list
+    script: scripts/add-local-repo.sh
 
   - action: run
     description: configure u-boot-menu
