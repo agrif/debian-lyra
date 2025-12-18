@@ -1,4 +1,5 @@
 {{- $codename := or .codename "trixie" -}}
+{{- $devicetree := or .devicetree "rk3506g-luckfox-lyra.dtb" -}}
 {{- $image := or .image (printf "luckfox-lyra-%s-sd.img" $codename) -}}
 
 architecture: armhf
@@ -63,10 +64,6 @@ actions:
     file: parts/root.tar.xz
     compression: xz
 
-  - action: filesystem-deploy
-    description: deploy filesystem image
-    setup-kernel-cmdline: false
-
   - action: overlay
     description: add local packages
     origin: artifacts
@@ -83,6 +80,15 @@ actions:
       apt-ftparchive release . > Release
       echo "deb [trusted=yes] file:/opt/lyra-packages/ ./" > /etc/apt/sources.list.d/lyra-packages.list
       echo "deb-src [trusted=yes] file:/opt/lyra-packages/ ./" >> /etc/apt/sources.list.d/lyra-packages.list
+
+  - action: run
+    description: configure u-boot-menu
+    chroot: true
+    script: scripts/configure-boot-menu.sh {{ $devicetree }}
+
+  - action: filesystem-deploy
+    description: deploy filesystem image
+    setup-kernel-cmdline: false
 
   # note: must run *after* filesystem deploy, so that u-boot-update works right
   - action: apt
