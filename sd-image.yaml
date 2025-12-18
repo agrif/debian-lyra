@@ -19,7 +19,12 @@ actions:
         options: [ x-systemd.growfs ]
 
     partitions:
-      # FIXME allow root on other than partition 3
+      - name: idblock
+        parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
+        fs: none
+        start: 64s # fixed address
+        end: 1087s # +512kiB
+
       - name: u-boot
         parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
         fs: none
@@ -40,13 +45,6 @@ actions:
         fs: ext4
         start: 548864s
         end: 100%
-
-      # morally this goes first, but right now partition order matters
-      - name: idblock
-        parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
-        fs: none
-        start: 64s # fixed address
-        end: 1087s # +512kiB
 
   - action: raw
     description: write idblock
