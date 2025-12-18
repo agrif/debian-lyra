@@ -54,6 +54,7 @@ actions:
       - lrzsz
       - sudo
       - systemd-repart
+      - systemd-zram-generator
       - u-boot-menu
 
   - action: run
