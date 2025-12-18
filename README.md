@@ -13,7 +13,7 @@ Install dependencies:
 
 Build image:
 
-    ./build.sh
+    ./build.sh all
 
 Write image to SD card:
 

@@ -1,34 +1,79 @@
 #!/usr/bin/bash
 set -e
-R=$(realpath $(dirname "$0"))
+
+# Do Not Become That Which You Despise
+# (try to keep this readable as an instruction list, as well as a script)
+
+# configuration
+CODENAME=${CODENAME:=trixie}
+JOBS=${JOBS:=$(nproc --all)}
+
+# paths: $R is repository root, $B is build directory
+R=$(realpath "$(dirname "$0")")
+B=$(realpath "${B:=$R/build}")
 cd $R
 
-# set here because multiple things need to agree on this
-CODENAME=trixie
+#
+# Help
+#
 
-JOBS=${JOBS:=$(nproc --all)}
-mkdir -p build/parts/
-mkdir -p build/packages/
-mkdir -p build/source-packages/
+build_help() {
+    cat <<EOF
+Usage: $0 <part> [part ...]
+
+where <part> is one of:
+
+    idblock   build the Rockchip idblock
+    uboot     build U-Boot
+    kernel    build the Linux kernel
+    root      build the root filesystem
+
+    sdimage   combine idblock, uboot, kernel, and root into SD image
+
+    all       run everything
+
+The following environment variables control the build:
+
+    B         output directory (default: build)
+    CODENAME  Debian distribution to build
+    JOBS      parallel jobs when compiling (default: `nproc --all`)
+
+EOF
+    exit 0
+}
+
+#
+# Do everything!
+#
+
+build_all() {
+    build_idblock
+    build_uboot
+    build_kernel
+    build_root
+    build_sdimage
+}
 
 #
 # idblock
 #
 
-(
-    cd sources/rkbin/
+build_idblock() (
+    cd $R/sources/rkbin/
+    mkdir -p $B/parts/
 
     ./tools/boot_merger RKBOOT/RK3506MINIALL.ini
     rm rk3506_spl_loader_v1.06.111.bin
-    mv rk3506_idblock_v1.06.111.img $R/build/parts/idblock.img
+    mv rk3506_idblock_v1.06.111.img $B/parts/idblock.img
 )
 
 #
 # U-Boot
 #
 
-(
-    cd sources/u-boot/
+build_uboot() (
+    cd $R/sources/u-boot/
+    mkdir -p $B/parts/
 
     # prepare u-boot
     make mrproper
@@ -41,7 +86,7 @@ mkdir -p build/source-packages/
     make -j${JOBS} CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error
 
     # grab op-tee from rkbin, and create the u-boot FIT
-    cp ../rkbin/bin/rk35/rk3506_tee_v2.10.bin ./tee.bin
+    cp $R/sources/rkbin/bin/rk35/rk3506_tee_v2.10.bin ./tee.bin
     make -j${JOBS} CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error u-boot.itb
 
     # fix up op-tee load address
@@ -49,15 +94,16 @@ mkdir -p build/source-packages/
     sed -i 's/load = <0x8400000>;/load = <0x1000>;/' u-boot.its
     ./tools/mkimage -f u-boot.its -E u-boot.itb
 
-    cp u-boot.itb $R/build/parts/
+    cp u-boot.itb $B/parts/
 )
 
 #
 # Kernel
 #
 
-(
-    cd sources/kernel/
+build_kernel() (
+    cd $R/sources/kernel/
+    mkdir -p $B/packages/ $B/source-packages/
 
     # prepare kernel
     make mrproper
@@ -75,16 +121,43 @@ mkdir -p build/source-packages/
          EXTRAVERSION=-lyra LOCALVERSION= \
          KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
     rm linux.tar.gz
-    mv ../linux-*.deb $R/build/packages/
-    mv ../linux-lyra* $R/build/source-packages/
+    mv ../linux-*.deb $B/packages/
+    mv ../linux-lyra* $B/source-packages/
 
     # unstage dts
     git restore --staged arch/arm/boot/dts/rockchip/*.dts{,i}
 )
 
 #
-# Debos
+# Root Filesystem
 #
 
-debos --artifactdir=build/ -t codename:$CODENAME root-fs.yaml
-debos --artifactdir=build/ -t codename:$CODENAME sd-image.yaml
+build_root() (
+    cd $R
+    mkdir -p $B/parts
+    debos --artifactdir=$B -t codename:$CODENAME root-fs.yaml
+)
+
+#
+# SD Card Image
+#
+
+build_sdimage() (
+    cd $R
+    mkdir -p $B
+    debos --artifactdir=$B -t codename:$CODENAME sd-image.yaml
+)
+
+#
+# Main program, runs build_$ARG for each $ARG
+#
+
+if [ $# -eq 0 ]; then
+    build_help
+    exit 0
+fi
+
+while [ $# -gt 0 ]; do
+    time build_$1
+    shift
+done

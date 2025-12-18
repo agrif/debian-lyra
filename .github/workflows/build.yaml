@@ -19,7 +19,7 @@ jobs:
           device-tree-compiler gcc-arm-none-eabi lz4 xz-utils
 
       - name: Build
-        run: sudo ./build.sh
+        run: sudo ./build.sh all
 
       - name: List Results
         run: ls -sh build/*.img*
