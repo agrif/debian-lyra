@@ -23,12 +23,11 @@ Usage: $0 <part> [part ...]
 
 where <part> is one of:
 
-    idblock   build the Rockchip idblock
     uboot     build U-Boot
     kernel    build the Linux kernel
     root      build the root filesystem
 
-    sdimage   combine idblock, uboot, kernel, and root into SD image
+    sdimage   combine uboot, kernel, and root into SD image
 
     all       run everything
 
@@ -47,25 +46,11 @@ EOF
 #
 
 build_all() {
-    build_idblock
     build_uboot
     build_kernel
     build_root
     build_sdimage
 }
-
-#
-# idblock
-#
-
-build_idblock() (
-    cd $R/sources/rkbin/
-    mkdir -p $B/parts/
-
-    ./tools/boot_merger RKBOOT/RK3506MINIALL.ini
-    rm rk3506_spl_loader_v1.06.111.bin
-    mv rk3506_idblock_v1.06.111.img $B/parts/idblock.img
-)
 
 #
 # U-Boot
@@ -77,24 +62,14 @@ build_uboot() (
 
     # prepare u-boot
     make mrproper
-    cp $R/configs/u-boot/rk3506_luckfox_defconfig .config
-    cp $R/configs/u-boot/rk3506-luckfox.dts{,i} arch/arm/dts/
-    cp $R/configs/u-boot/evb_rk3506.h include/configs/
 
     # build u-boot
-    make CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error olddefconfig
-    make -j${JOBS} CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error
+    make CROSS-COMPILE=arm-none-eabi- luckfox-lyra_defconfig
+    make -j${JOBS} CROSS_COMPILE=arm-none-eabi- \
+         ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506_ddr_750MHz_v1.06.bin \
+         TEE=../rkbin/bin/rk35/rk3506_tee_ta_v1.10.bin
 
-    # grab op-tee from rkbin, and create the u-boot FIT
-    cp $R/sources/rkbin/bin/rk35/rk3506_tee_v2.10.bin ./tee.bin
-    make -j${JOBS} CROSS_COMPILE=arm-none-eabi- KCFLAGS=-Wno-error u-boot.itb
-
-    # fix up op-tee load address
-    sed -i 's/entry = <0x8400000>;/entry = <0x1000>;/' u-boot.its
-    sed -i 's/load = <0x8400000>;/load = <0x1000>;/' u-boot.its
-    ./tools/mkimage -f u-boot.its -E u-boot.itb
-
-    cp u-boot.itb $B/parts/
+    cp u-boot-rockchip.bin $B/parts/
 )
 
 #

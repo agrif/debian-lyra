@@ -5,7 +5,7 @@
 	ignore = dirty
 [submodule "sources/u-boot"]
 	path = sources/u-boot
-	url = https://github.com/rockchip-linux/u-boot.git
+	url = https://github.com/agrif/u-boot.git
 	shallow = true
 	ignore = dirty
 [submodule "sources/kernel"]

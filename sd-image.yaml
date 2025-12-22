@@ -20,43 +20,31 @@ actions:
         options: [ x-systemd.growfs ]
 
     partitions:
-      - name: idblock
-        parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
-        fs: none
-        start: 64s # fixed address
-        end: 1087s # +512kiB
-
       - name: u-boot
         parttype: 3DE21764-95BD-54BD-A5C3-4ABE786F38A8
         fs: none
-        start: 16384s # fixed address
-        end: 24575s # +4MiB
+        start: 64s # fixed address
+        end: 32767s # + 16MiB (give or take, -32kiB)
 
       - name: boot
         fslabel: lyra boot
         parttype: BC13C2FF-59E6-4262-A352-B275FD6F7172
         fs: ext4
-        start: 24576s
-        end: 548863s # +256MiB
+        start: 32768s
+        end: 557055s # +256MiB
         flags: [ legacy_boot ]
 
       - name: root
         fslabel: lyra root
         parttype: 69DAD710-2CE4-4E3C-B16C-21A1D49ABED3
         fs: ext4
-        start: 548864s
+        start: 557056s
         end: 100%
-
-  - action: raw
-    description: write idblock
-    origin: artifacts
-    source: parts/idblock.img
-    partition: idblock
 
   - action: raw
     description: write u-boot
     origin: artifacts
-    source: parts/u-boot.itb
+    source: parts/u-boot-rockchip.bin
     partition: u-boot
 
   - action: unpack
