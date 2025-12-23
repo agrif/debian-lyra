@@ -1,0 +1,21 @@
+Source: lyra-usb-gadget
+Section: net
+Priority: optional
+Maintainer: Aaron Griffith <aargri@gmail.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+Standards-Version: 4.7.2
+Homepage: https://github.com/agrif/debian-lyra
+Vcs-Browser: https://github.com/agrif/debian-lyra
+Vcs-Git: https://github.com/agrif/debian-lyra.git
+
+Package: lyra-usb-gadget
+Architecture: all
+Depends:
+ ${misc:Depends},
+ kmod,
+Description: configure USB gadget on Luckfox Lyra boards
+ This package initializes a simple USB gadget configuration on boot,
+ suitable for Luckfox Lyra boards. Among other things, it creates a
+ network device that can be used to connect to other computers over USB.

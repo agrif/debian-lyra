@@ -25,9 +25,10 @@ where <part> is one of:
 
     uboot     build U-Boot
     kernel    build the Linux kernel
+    packages  build debian packages
     root      build the root filesystem
 
-    sdimage   combine uboot, kernel, and root into SD image
+    sdimage   combine uboot, kernel, packages, and root into SD image
 
     all       run everything
 
@@ -48,6 +49,7 @@ EOF
 build_all() {
     build_uboot
     build_kernel
+    build_packages
     build_root
     build_sdimage
 }
@@ -101,6 +103,19 @@ build_kernel() (
 
     # unstage dts
     git restore --staged arch/arm/boot/dts/rockchip/*.dts{,i}
+)
+
+#
+# Packages
+#
+
+build_packages() (
+    mkdir -p $B/packages/ $B/source-packages/
+
+    cd $R/packages/lyra-usb-gadget
+    debuild -us -uc
+    mv ../lyra-usb-gadget_*.deb $B/packages/
+    mv ../lyra-usb-gadget_* $B/source-packages/
 )
 
 #

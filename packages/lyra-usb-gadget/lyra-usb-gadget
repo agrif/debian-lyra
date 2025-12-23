@@ -1,0 +1,105 @@
+#!/bin/bash
+set -e
+
+USB_UDC=$(ls /sys/class/udc/ | head -n 1)
+STRINGS_EN=strings/0x409
+CONFIG=configs/c.1
+GADGET_NAME=lyra
+
+uninstall() {
+    disable
+
+    cd /sys/kernel/config/usb_gadget/$GADGET_NAME
+    if [ -d os_desc ]; then
+        find os_desc -mindepth 1 -maxdepth 1 -type l -delete
+    fi
+    if [ -d configs ]; then
+        find configs -mindepth 2 -maxdepth 2 -type l -delete
+        find configs -mindepth 3 -maxdepth 3 -wholename "*/strings/*" -type d -delete
+        find configs -mindepth 1 -maxdepth 1 -type d -delete
+    fi
+    if [ -d functions ]; then
+        find functions -mindepth 1 -maxdepth 1 -type d -delete
+    fi
+    if [ -d strings ]; then
+        find strings -mindepth 1 -maxdepth 1 -type d -delete
+    fi
+
+    cd ..
+    rmdir $GADGET_NAME
+}
+
+install() {
+    modprobe libcomposite
+    cd /sys/kernel/config/
+    mkdir -p usb_gadget/$GADGET_NAME
+    cd usb_gadget/$GADGET_NAME
+
+    echo "0x1d6b" > idVendor  # Linux Foundation
+    echo "0x0104" > idProduct # Multifunction Composite Gadget
+
+    mkdir -p ./$STRINGS_EN
+    echo "0123456789ABCDEF" > ./$STRINGS_EN/serialnumber
+    echo "Luckfox" > ./$STRINGS_EN/manufacturer
+    cat /proc/device-tree/model > ./$STRINGS_EN/product
+
+    mkdir -p ./$CONFIG
+    echo "500" > ./$CONFIG/MaxPower
+
+    echo "1" > os_desc/use
+    echo "0x1" > os_desc/b_vendor_code
+    echo "MSFT100" > os_desc/qw_sign
+    ln -s $CONFIG/ os_desc/
+
+    mkdir -p ./$CONFIG/$STRINGS_EN
+    echo "lyra config name" > ./$CONFIG/$STRINGS_EN/configuration
+
+    #mkdir -p functions/acm.usb0
+    #ln -s functions/acm.usb0 ./$CONFIG/
+
+    mkdir -p functions/rndis.usb0
+    echo "9e:90:c1:ed:13:5f" > functions/rndis.usb0/dev_addr
+    echo "fe:a4:a4:34:25:1b " > functions/rndis.usb0/host_addr
+    echo "RNDIS" > functions/rndis.usb0/os_desc/interface.rndis/compatible_id
+    echo "5162001" > functions/rndis.usb0/os_desc/interface.rndis/sub_compatible_id
+    ln -s functions/rndis.usb0 ./$CONFIG/
+}
+
+disable() {
+    cd /sys/kernel/config/usb_gadget/$GADGET_NAME
+    echo -n "" > UDC
+}
+
+enable() {
+    install
+
+    cd /sys/kernel/config/usb_gadget/$GADGET_NAME
+    echo "$USB_UDC" > UDC
+}
+
+case "$1" in
+    uninstall)
+        shift
+        uninstall "$@"
+        ;;
+    install)
+        shift
+        install "$@"
+        ;;
+    disable)
+        shift
+        disable "$@"
+        ;;
+    enable)
+        shift
+        enable "$@"
+        ;;
+    "")
+        echo "usage: $0 <uninstall|install|disable|enable>" 1>&2
+        exit 1
+        ;;
+    *)
+        echo "unknown command: $1" 1>&2
+        exit 1
+        ;;
+esac

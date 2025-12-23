@@ -1,0 +1,12 @@
+[Unit]
+Description=configure USB gadget on Luckfox Lyra boards
+ConditionDirectoryNotEmpty=/sys/class/udc/
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/libexec/lyra-usb-gadget enable
+ExecStop=/usr/libexec/lyra-usb-gadget uninstall

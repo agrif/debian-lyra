@@ -79,6 +79,7 @@ actions:
     recommends: true
     packages:
       - linux-image-6.6.89+
+      - lyra-usb-gadget
 
   - action: run
     description: create bmap file

@@ -1,0 +1,7 @@
+/*.substvars
+/.debhelper/
+/debhelper-build-stamp
+/files
+/tmp/
+/lyra-usb-gadget
+/*.debhelper
