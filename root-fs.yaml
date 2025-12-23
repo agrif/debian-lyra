@@ -50,12 +50,12 @@ actions:
     description: install extra packages
     recommends: true
     packages:
+      - dphys-swapfile
       - fake-hwclock
       - initramfs-tools
       - lrzsz
       - sudo
       - systemd-repart
-      - systemd-zram-generator
       - u-boot-menu
 
   - action: run
