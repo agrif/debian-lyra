@@ -8,3 +8,4 @@ RequiredForOnline=no
 [Network]
 DHCP=yes
 Address=192.168.123.100/24
+MulticastDNS=yes
