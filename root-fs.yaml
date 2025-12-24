@@ -78,6 +78,11 @@ actions:
       systemctl enable systemd-resolved.service
 
   - action: run
+    description: disable tmpfs for /tmp
+    chroot: true
+    command: systemctl mask tmp.mount
+
+  - action: run
     description: clean up root
     chroot: true
     script: scripts/rootfs-cleanup.sh
