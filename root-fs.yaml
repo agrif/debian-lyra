@@ -56,6 +56,7 @@ actions:
       - lrzsz
       - sudo
       - systemd-repart
+      - systemd-resolved
       - u-boot-menu
 
   - action: run
@@ -69,11 +70,12 @@ actions:
     destination: /etc/
 
   - action: run
-    description: enable custom systemd units
+    description: enable systemd units
     chroot: true
     command: |
-      mkdir -p /etc/systemd/system/multi-user.target.wants
-      ln -s /etc/systemd/system/regen-openssh-keys.service /etc/systemd/system/multi-user.target.wants/regen-openssh-keys.service
+      systemctl enable regen-openssh-keys.service
+      systemctl enable systemd-networkd.service
+      systemctl enable systemd-resolved.service
 
   - action: run
     description: clean up root

@@ -1,0 +1,10 @@
+[Match]
+Name=usb0
+
+[Link]
+Description=Luckfox Lyra USB Gadget
+RequiredForOnline=no
+
+[Network]
+DHCP=yes
+Address=192.168.123.100/24
