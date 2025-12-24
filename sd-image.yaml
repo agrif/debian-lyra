@@ -81,6 +81,12 @@ actions:
       - linux-image-6.6.89+
       - lyra-usb-gadget
 
+  # note: must run *after* filesystem deploy, to modify /etc/fstab
+  - action: run
+    description: fix /run size
+    chroot: true
+    script: scripts/fix-run-size.sh
+
   - action: run
     description: create bmap file
     postprocess: true
