@@ -12,11 +12,13 @@ APP_KEY_DEV=7798d53ea71b4f298dd35be1ad45f64e
 APP_KEY_HOST=3de145d241004365a26a18cb1b152081
 
 # massage a systemd-id128 into a mac address
+# locally-administered addresses set bit 1 of octet 0
+# (we just use a fixed 42 for this octet)
 generate_mac() {
     systemd-id128 machine-id --app-specific="$1" \
-        | cut -c-12 \
+        | cut -c-10 \
         | sed -e 's/\(..\)/:\1/g' \
-        | cut -c2-
+        | sed -e 's/.*/42&/'
 }
 
 uninstall() {
