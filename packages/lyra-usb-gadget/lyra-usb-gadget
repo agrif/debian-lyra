@@ -6,6 +6,19 @@ STRINGS_EN=strings/0x409
 CONFIG=configs/c.1
 GADGET_NAME=lyra
 
+# use stable mac addresses for both ends, derived from systemd machine-id
+# use two app keys to derive two different addresses
+APP_KEY_DEV=7798d53ea71b4f298dd35be1ad45f64e
+APP_KEY_HOST=3de145d241004365a26a18cb1b152081
+
+# massage a systemd-id128 into a mac address
+generate_mac() {
+    systemd-id128 machine-id --app-specific="$1" \
+        | cut -c-12 \
+        | sed -e 's/\(..\)/:\1/g' \
+        | cut -c2-
+}
+
 uninstall() {
     disable
 
@@ -58,8 +71,8 @@ install() {
     #ln -s functions/acm.usb0 ./$CONFIG/
 
     mkdir -p functions/rndis.usb0
-    echo "9e:90:c1:ed:13:5f" > functions/rndis.usb0/dev_addr
-    echo "fe:a4:a4:34:25:1b " > functions/rndis.usb0/host_addr
+    generate_mac $APP_KEY_DEV > functions/rndis.usb0/dev_addr
+    generate_mac $APP_KEY_HOST > functions/rndis.usb0/host_addr
     echo "RNDIS" > functions/rndis.usb0/os_desc/interface.rndis/compatible_id
     echo "5162001" > functions/rndis.usb0/os_desc/interface.rndis/sub_compatible_id
     ln -s functions/rndis.usb0 ./$CONFIG/
