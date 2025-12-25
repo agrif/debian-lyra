@@ -1,1 +1,2 @@
 lyra-usb-gadget /usr/libexec
+debian/60-lyra-usb-gadget.network /usr/lib/systemd/network
