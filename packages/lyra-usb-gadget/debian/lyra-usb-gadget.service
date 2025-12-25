@@ -1,12 +1,15 @@
+# This file is installed by the `lyra-usb-gadget` package.
+# To modify its behavior, use `systemctl edit lyra-usb-gadget.service`.
+
 [Unit]
 Description=configure USB gadget on Luckfox Lyra boards
 ConditionDirectoryNotEmpty=/sys/class/udc/
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=usb-gadget.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=true
 ExecStart=/usr/libexec/lyra-usb-gadget enable
-ExecStop=/usr/libexec/lyra-usb-gadget uninstall
+ExecStopPost=/usr/libexec/lyra-usb-gadget uninstall

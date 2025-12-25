@@ -1,0 +1,2 @@
+# we really do want to use usb-gadget.target
+lyra-usb-gadget binary: systemd-service-file-refers-to-unusual-wantedby-target usb-gadget.target [usr/lib/systemd/system/lyra-usb-gadget.service]
