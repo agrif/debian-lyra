@@ -69,15 +69,18 @@ install() {
     mkdir -p ./$CONFIG/$STRINGS_EN
     echo "lyra config name" > ./$CONFIG/$STRINGS_EN/configuration
 
-    #mkdir -p functions/acm.usb0
-    #ln -s functions/acm.usb0 ./$CONFIG/
+    # turning this on breaks the network device (??)
+    #mkdir -p functions/acm.lyra
+    # on newer kernels, do this to prevent ModemManager from probing us
+    #echo "0" > functions/acm.lyra/protocol
+    #ln -s functions/acm.lyra ./$CONFIG/
 
-    mkdir -p functions/rndis.usb0
-    generate_mac $APP_KEY_DEV > functions/rndis.usb0/dev_addr
-    generate_mac $APP_KEY_HOST > functions/rndis.usb0/host_addr
-    echo "RNDIS" > functions/rndis.usb0/os_desc/interface.rndis/compatible_id
-    echo "5162001" > functions/rndis.usb0/os_desc/interface.rndis/sub_compatible_id
-    ln -s functions/rndis.usb0 ./$CONFIG/
+    mkdir -p functions/rndis.lyra
+    generate_mac $APP_KEY_DEV > functions/rndis.lyra/dev_addr
+    generate_mac $APP_KEY_HOST > functions/rndis.lyra/host_addr
+    echo "RNDIS" > functions/rndis.lyra/os_desc/interface.rndis/compatible_id
+    echo "5162001" > functions/rndis.lyra/os_desc/interface.rndis/sub_compatible_id
+    ln -s functions/rndis.lyra ./$CONFIG/
 }
 
 disable() {
