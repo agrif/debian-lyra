@@ -1,6 +1,8 @@
 {{- $codename := or .codename "trixie" -}}
+{{- $board := or .board "luckfox-lyra" -}}
+{{- $uboot := or .uboot "u-boot-rk3506g.bin" -}}
 {{- $devicetree := or .devicetree "rk3506g-luckfox-lyra.dtb" -}}
-{{- $image := or .image (printf "luckfox-lyra-%s-sd.img" $codename) -}}
+{{- $image := or .image (printf "%s-%s-sd.img" $board $codename) -}}
 
 architecture: armhf
 sectorsize: 512
@@ -44,7 +46,7 @@ actions:
   - action: raw
     description: write u-boot
     origin: artifacts
-    source: parts/u-boot-rockchip.bin
+    source: parts/{{ $uboot }}
     partition: u-boot
 
   - action: unpack

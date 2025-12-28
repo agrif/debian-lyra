@@ -64,14 +64,19 @@ build_uboot() (
 
     # prepare u-boot
     make mrproper
-
-    # build u-boot
     make CROSS-COMPILE=arm-none-eabi- luckfox-lyra_defconfig
+
+    # build u-boot (rk3506b)
+    make -j${JOBS} CROSS_COMPILE=arm-none-eabi- \
+         ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506b_ddr_750MHz_v1.06.bin \
+         TEE=../rkbin/bin/rk35/rk3506_tee_ta_v1.10.bin
+    cp u-boot-rockchip.bin $B/parts/u-boot-rk3506b.bin
+
+    # build u-boot (rk3506g)
     make -j${JOBS} CROSS_COMPILE=arm-none-eabi- \
          ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506_ddr_750MHz_v1.06.bin \
          TEE=../rkbin/bin/rk35/rk3506_tee_ta_v1.10.bin
-
-    cp u-boot-rockchip.bin $B/parts/
+    cp u-boot-rockchip.bin $B/parts/u-boot-rk3506g.bin
 )
 
 #
@@ -135,7 +140,12 @@ build_root() (
 build_sdimage() (
     cd $R
     mkdir -p $B
-    debos --artifactdir=$B -t codename:$CODENAME sd-image.yaml
+    debos --artifactdir=$B \
+          -t codename:$CODENAME \
+          -t board:luckfox-lyra \
+          -t uboot:u-boot-rk3506g.bin \
+          -t devicetree:rk3506g-luckfox-lyra.dtb \
+          sd-image.yaml
 )
 
 #
