@@ -39,7 +39,7 @@ EOF
 
     for board in $BOARDS; do
         get_board_config "$board"
-        printf "    %-9s %s\n" "$board" "$BOARD_DESCRIPTION" >&2
+        printf "    %-14s %s\n" "$board" "$BOARD_DESCRIPTION" >&2
     done
 
     cat >&2 <<EOF
@@ -73,7 +73,7 @@ build_all() {
 # per-board configuration
 #
 
-BOARDS="lyra"
+BOARDS="lyra lyra-plus lyra-ultra lyra-ultra-w lyra-zero-w lyra-pi-a lyra-pi-a-w lyra-pi-b lyra-pi-b-w"
 
 get_board_config() {
     # set the following variables:
@@ -87,6 +87,54 @@ get_board_config() {
             BOARD_NAME="luckfox-lyra"
             BOARD_UBOOT="u-boot-rk3506g.bin"
             BOARD_DT="rk3506g-luckfox-lyra.dtb"
+            ;;
+        lyra-plus)
+            BOARD_DESCRIPTION="Luckfox Lyra Plus (Ethernet)"
+            BOARD_NAME="luckfox-lyra-plus"
+            BOARD_UBOOT="u-boot-rk3506g.bin"
+            BOARD_DT="rk3506g-luckfox-lyra-plus.dtb"
+            ;;
+        lyra-ultra)
+            BOARD_DESCRIPTION="Luckfox Lyra Ultra"
+            BOARD_NAME="luckfox-lyra-ultra"
+            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_DT="rk3506b-luckfox-lyra-ultra.dtb"
+            ;;
+        lyra-ultra-w)
+            BOARD_DESCRIPTION="Luckfox Lyra Ultra W (Wireless)"
+            BOARD_NAME="luckfox-lyra-ultra-w"
+            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_DT="rk3506b-luckfox-lyra-ultra-w.dtb"
+            ;;
+        lyra-zero-w)
+            BOARD_DESCRIPTION="Luckfox Lyra Zero W (Wireless)"
+            BOARD_NAME="luckfox-lyra-zero-w"
+            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_DT="rk3506b-luckfox-lyra-zero-w.dtb"
+            ;;
+        lyra-pi-a)
+            BOARD_DESCRIPTION="Luckfox Lyra Pi A (eMMC)"
+            BOARD_NAME="luckfox-lyra-pi-a"
+            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_DT="rk3506b-luckfox-lyra-pi.dtb"
+            ;;
+        lyra-pi-a-w)
+            BOARD_DESCRIPTION="Luckfox Lyra Pi A W (eMMC, Wireless)"
+            BOARD_NAME="luckfox-lyra-pi-a-w"
+            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_DT="rk3506b-luckfox-lyra-pi-w.dtb"
+            ;;
+        lyra-pi-b)
+            BOARD_DESCRIPTION="Luckfox Lyra Pi B (SD)"
+            BOARD_NAME="luckfox-lyra-pi-b"
+            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_DT="rk3506b-luckfox-lyra-pi-sd.dtb"
+            ;;
+        lyra-pi-b-w)
+            BOARD_DESCRIPTION="Luckfox Lyra Pi B W (SD, Wireless)"
+            BOARD_NAME="luckfox-lyra-pi-b-w"
+            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_DT="rk3506b-luckfox-lyra-pi-w-sd.dtb"
             ;;
 
         # board name not matched
