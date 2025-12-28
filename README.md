@@ -26,7 +26,7 @@ Install
 
 Write image to SD card:
 
-    bmaptool copy --removable-device build/luckfox-lyra-trixie-sd.img.xz \
+    bmaptool copy --removable-device build/luckfox-${BOARD}-trixie.img.xz \
         /dev/sdcard
 
 Connect

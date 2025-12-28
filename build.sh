@@ -28,7 +28,7 @@ where <part> is one of:
     packages  build debian packages
     root      build the root filesystem
 
-    sdimage <board>
+    image <board>
               combine uboot, kernel, packages, and root into SD image
 
     all       run everything
@@ -65,7 +65,7 @@ build_all() {
     build_root
 
     for board in $BOARDS; do
-        build_sdimage "$board"
+        build_image "$board"
     done
 }
 
@@ -231,7 +231,7 @@ build_root() (
 # SD Card Image
 #
 
-build_sdimage() (
+build_image() (
     cd $R
     mkdir -p $B
 
@@ -241,7 +241,7 @@ build_sdimage() (
           -t board:$BOARD_NAME \
           -t uboot:$BOARD_UBOOT \
           -t devicetree:$BOARD_DT \
-          sd-image.yaml
+          image.yaml
 )
 
 #
@@ -255,7 +255,7 @@ fi
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        sdimage)
+        image)
             # one argument
             time build_$1 "$2"
             shift

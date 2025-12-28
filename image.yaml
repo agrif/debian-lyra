@@ -2,7 +2,7 @@
 {{- $board := or .board "luckfox-lyra" -}}
 {{- $uboot := or .uboot "u-boot-rk3506g.bin" -}}
 {{- $devicetree := or .devicetree "rk3506g-luckfox-lyra.dtb" -}}
-{{- $image := or .image (printf "%s-%s-sd.img" $board $codename) -}}
+{{- $image := or .image (printf "%s-%s.img" $board $codename) -}}
 
 architecture: armhf
 sectorsize: 512
