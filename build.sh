@@ -18,7 +18,7 @@ cd $R
 #
 
 build_help() {
-    cat <<EOF
+    cat >&2 <<EOF
 Usage: $0 <part> [part ...]
 
 where <part> is one of:
@@ -28,9 +28,21 @@ where <part> is one of:
     packages  build debian packages
     root      build the root filesystem
 
-    sdimage   combine uboot, kernel, packages, and root into SD image
+    sdimage <board>
+              combine uboot, kernel, packages, and root into SD image
 
     all       run everything
+
+and <board> is one of:
+
+EOF
+
+    for board in $BOARDS; do
+        get_board_config "$board"
+        printf "    %-9s %s\n" "$board" "$BOARD_DESCRIPTION" >&2
+    done
+
+    cat >&2 <<EOF
 
 The following environment variables control the build:
 
@@ -51,7 +63,41 @@ build_all() {
     build_kernel
     build_packages
     build_root
-    build_sdimage
+
+    for board in $BOARDS; do
+        build_sdimage "$board"
+    done
+}
+
+#
+# per-board configuration
+#
+
+BOARDS="lyra"
+
+get_board_config() {
+    # set the following variables:
+    # BOARD_DESCRIPTION: used in help text
+    # BOARD_NAME: used in image filename
+    # BOARD_UBOOT: the u-boot binary inside $B/parts/ to use
+    # BOARD_DT: the device tree name to set for u-boot-menu
+    case "$1" in
+        lyra)
+            BOARD_DESCRIPTION="Luckfox Lyra (A, B)"
+            BOARD_NAME="luckfox-lyra"
+            BOARD_UBOOT="u-boot-rk3506g.bin"
+            BOARD_DT="rk3506g-luckfox-lyra.dtb"
+            ;;
+
+        # board name not matched
+        *)
+            if [ -z "$1" ]; then
+                printf "ERROR: no board name given\n" >&2
+            else
+                printf "ERROR: bad board name: %s\n" "$1" >&2
+            fi
+            exit 1
+    esac
 }
 
 #
@@ -140,11 +186,13 @@ build_root() (
 build_sdimage() (
     cd $R
     mkdir -p $B
+
+    get_board_config "$1"
     debos --artifactdir=$B \
           -t codename:$CODENAME \
-          -t board:luckfox-lyra \
-          -t uboot:u-boot-rk3506g.bin \
-          -t devicetree:rk3506g-luckfox-lyra.dtb \
+          -t board:$BOARD_NAME \
+          -t uboot:$BOARD_UBOOT \
+          -t devicetree:$BOARD_DT \
           sd-image.yaml
 )
 
@@ -158,6 +206,17 @@ if [ $# -eq 0 ]; then
 fi
 
 while [ $# -gt 0 ]; do
-    time build_$1
-    shift
+    case "$1" in
+        sdimage)
+            # one argument
+            time build_$1 "$2"
+            shift
+            shift
+            ;;
+        *)
+            # no arguments
+            time build_$1
+            shift
+            ;;
+    esac
 done
