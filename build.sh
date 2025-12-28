@@ -44,6 +44,8 @@ EOF
 
     cat >&2 <<EOF
 
+    all            run given command for all boards
+
 The following environment variables control the build:
 
     B         output directory (default: build)
@@ -63,10 +65,7 @@ build_all() {
     build_kernel
     build_packages
     build_root
-
-    for board in $BOARDS; do
-        build_image "$board"
-    done
+    build_image all
 }
 
 #
@@ -234,6 +233,14 @@ build_root() (
 build_image() (
     cd $R
     mkdir -p $B
+
+    # handle "all" special case
+    if [ "$1" = "all" ]; then
+        for board in $BOARDS; do
+            build_image "$board"
+        done
+        return;
+    fi
 
     get_board_config "$1"
     debos --artifactdir=$B \
