@@ -14,8 +14,8 @@ Get required sources:
 Install dependencies:
 
     sudo apt-get install bmaptool build-essential debhelper debos \
-        device-tree-compiler devscripts gcc-arm-none-eabi lz4 \
-        python3-pyelftools xz-utils
+        device-tree-compiler devscripts gcc-arm-none-eabi \
+        libgnutls-openssl-dev lz4 python3-pyelftools xz-utils
 
 Build image:
 
