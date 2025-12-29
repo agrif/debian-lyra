@@ -157,18 +157,18 @@ build_uboot() (
 
     # prepare u-boot
     make mrproper
-    make CROSS-COMPILE=arm-none-eabi- luckfox-lyra_defconfig
+    make CROSS-COMPILE=arm-none-eabi- luckfox-lyra-rk3506_defconfig
 
     # build u-boot (rk3506b)
     make -j${JOBS} CROSS_COMPILE=arm-none-eabi- \
          ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506b_ddr_750MHz_v1.06.bin \
-         TEE=../rkbin/bin/rk35/rk3506_tee_ta_v1.10.bin
+         TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
     cp u-boot-rockchip.bin $B/parts/u-boot-rk3506b.bin
 
     # build u-boot (rk3506g)
     make -j${JOBS} CROSS_COMPILE=arm-none-eabi- \
          ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506_ddr_750MHz_v1.06.bin \
-         TEE=../rkbin/bin/rk35/rk3506_tee_ta_v1.10.bin
+         TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
     cp u-boot-rockchip.bin $B/parts/u-boot-rk3506g.bin
 )
 
