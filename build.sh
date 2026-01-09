@@ -157,16 +157,16 @@ build_uboot() (
 
     # prepare u-boot
     make mrproper
-    make CROSS-COMPILE=arm-none-eabi- luckfox-lyra-rk3506_defconfig
+    make CROSS-COMPILE=arm-linux-gnueabihf- luckfox-lyra-rk3506_defconfig
 
     # build u-boot (rk3506b)
-    make -j${JOBS} CROSS_COMPILE=arm-none-eabi- \
+    make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
          ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506b_ddr_750MHz_v1.06.bin \
          TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
     cp u-boot-rockchip.bin $B/parts/u-boot-rk3506b.bin
 
     # build u-boot (rk3506g)
-    make -j${JOBS} CROSS_COMPILE=arm-none-eabi- \
+    make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
          ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506_ddr_750MHz_v1.06.bin \
          TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
     cp u-boot-rockchip.bin $B/parts/u-boot-rk3506g.bin
@@ -191,8 +191,8 @@ build_kernel() (
 
     # build kernel
     echo "0" > .version # debian-revision minus 1 (e.g.. "0" yields 6.6.89-1)
-    make ARCH=arm CROSS_COMPILE=arm-none-eabi- olddefconfig
-    make ARCH=arm CROSS_COMPILE=arm-none-eabi- -j${JOBS} \
+    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- olddefconfig
+    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j${JOBS} \
          EXTRAVERSION=-lyra LOCALVERSION= \
          KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
     rm linux.tar.gz
