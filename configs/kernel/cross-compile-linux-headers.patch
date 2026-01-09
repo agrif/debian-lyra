@@ -1,0 +1,34 @@
+diff --git a/scripts/package/install-extmod-build b/scripts/package/install-extmod-build
+index 8a7051fad0..8ed8809896 100755
+--- a/scripts/package/install-extmod-build
++++ b/scripts/package/install-extmod-build
+@@ -35,5 +35,29 @@ mkdir -p "${destdir}"
+ 	fi
+ } | tar -c -f - -T - | tar -xf - -C "${destdir}"
+ 
++# When ${CC} and ${HOSTCC} differ, rebuild host programs using ${CC}.
++#
++# This caters to host programs that participate in Kbuild. objtool and
++# resolve_btfids are out of scope.
++if [ "${CC}" != "${HOSTCC}" ]; then
++	cat "${destdir}/scripts/Makefile" - <<-'EOF' > "${destdir}/scripts/Kbuild"
++	subdir-y += basic
++	hostprogs-always-y += mod/modpost
++	mod/modpost-objs := $(addprefix mod/, modpost.o file2alias.o sumversion.o symsearch.o)
++	EOF
++
++	# HOSTCXX is not overridden. The C++ compiler is used to build:
++	# - scripts/kconfig/qconf, which is unneeded for external module builds
++	# - GCC plugins, which will not work on the installed system even after
++	#   being rebuilt.
++	#
++	# Clear VPATH and srcroot because the source files reside in the output
++	# directory.
++	# shellcheck disable=SC2016 # $(MAKE) and $(build) will be expanded by Make
++	"${MAKE}" run-command KBUILD_RUN_COMMAND='+$(MAKE) HOSTCC="'"${CC}"'" VPATH= srcroot=. $(build)='"$(realpath --relative-to=. "${destdir}")"/scripts
++
++	rm -f "${destdir}/scripts/Kbuild"
++fi
++
+ # copy .config manually to be where it's expected to be
+ cp "${KCONFIG_CONFIG}" "${destdir}/.config"

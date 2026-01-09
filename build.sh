@@ -148,6 +148,17 @@ get_board_config() {
 }
 
 #
+# Helpers
+#
+
+patch_idempotent() {
+    # applies a patch (like `patch`) but skips it if already applied
+    # uses 0 fuzziness and doesn't leave other files laying around
+    patch -t -F0 -R -N --dry-run "$@" > /dev/null \
+        || patch -t -F0 -N -r- --no-backup-if-mismatch "$@"
+}
+
+#
 # U-Boot
 #
 
@@ -182,9 +193,16 @@ build_kernel() (
 
     # prepare kernel
     make mrproper
+
+    # copy in config, device trees, and add DTs to Makefile
     cp $R/configs/kernel/rk3506_luckfox_defconfig .config
     cp $R/configs/kernel/*.dts{,i} arch/arm/boot/dts/rockchip/
     cp $R/configs/kernel/Makefile.dtb arch/arm/boot/dts/rockchip/Makefile
+
+    # make sure to build scripts/ for target during install
+    # https://lore.kernel.org/all/20240727074526.1771247-1-masahiroy@kernel.org/
+    # (and more recent fixes, rolled into one)
+    patch_idempotent -p1 -i ../../configs/kernel/cross-compile-linux-headers.patch
 
     # temporarily stage dts so deb-pkg picks it up
     git add arch/arm/boot/dts/rockchip/*.dts{,i}
