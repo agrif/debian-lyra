@@ -1,0 +1,12 @@
+# first onboard ethernet, gmac0 / end0
+
+[Match]
+Path=platform-ff4c8000.ethernet
+
+[Link]
+Description=Onboard Ethernet Port 0
+RequiredForOnline=no
+
+[Network]
+DHCP=yes
+MulticastDNS=yes

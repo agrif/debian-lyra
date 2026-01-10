@@ -47,6 +47,9 @@ Connect via:
    do this in Linux by (for example) bridging the USB interface with
    your primary interface.
 
+ * **Onboard Ethernet**. If your board has ethernet ports, these will
+   be autoconfigured using DHCP.
+
 When using any network method, you can connect to the board using the
 domain name `luckfox.local` (provided your OS supports multicast DNS,
 and you are on the same subnet as the board).

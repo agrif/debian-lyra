@@ -1,0 +1,12 @@
+# first onboard ethernet, gmac1 / end1
+
+[Match]
+Path=platform-ff4d0000.ethernet
+
+[Link]
+Description=Onboard Ethernet Port 1
+RequiredForOnline=no
+
+[Network]
+DHCP=yes
+MulticastDNS=yes
