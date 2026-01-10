@@ -386,6 +386,10 @@ int aicfw_download_fw_8800d80(struct aic_usb_dev *usb_dev)
 
     int i = 0;
 
+    (void)head;
+    (void)patch_info;
+    (void)aicbt_ext_patch_data_load;
+
 #if 0
     if (chip_id == CHIP_REV_U01) {
         head = aicbt_patch_table_alloc(usb_dev, FW_PATCH_TABLE_NAME_8800D80);
