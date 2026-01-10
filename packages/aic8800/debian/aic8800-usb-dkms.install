@@ -1,0 +1,3 @@
+debian/Makefile usr/src/aic8800-1.0.8
+usr/src/aic8800-1.0.8/aic8800_fdrv
+usr/src/aic8800-1.0.8/aic_load_fw

@@ -1,0 +1,10 @@
+/*.substvars
+/.debhelper/
+/debhelper-build-stamp
+/files
+/tmp/
+/patches/
+/*.debhelper
+/*.debhelper.log
+/aic8800-firmware/
+/aic8800-usb-dkms/

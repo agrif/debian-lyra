@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+# Output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+
+%:
+	dh $@ --with dkms
+
+override_dh_install:
+	dh_install
+	# clean up .gitignore from binary trees
+	cd debian/aic8800-usb-dkms/; find . -type f -name .gitignore -delete

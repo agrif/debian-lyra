@@ -1,0 +1,36 @@
+Source: aic8800
+Section: kernel
+Priority: optional
+Maintainer: Aaron Griffith <aargri@gmail.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-dkms,
+Standards-Version: 4.7.2
+Homepage: https://linux.brostrend.com/troubleshooting/source-code/
+
+Package: aic8800-firmware
+Architecture: all
+Depends:
+ ${misc:Depends},
+Description: firmware for AIC8800 USB WiFi devices
+ aic8800 is the Linux device driver released for the AIC 8800 WiFi
+ controllers with USB interface.
+ .
+ This package provides the firmware files used by the aic8800 kernel modules.
+
+Package: aic8800-usb-dkms
+Architecture: all
+Depends:
+ aic8800-firmware (= ${binary:Version}),
+ eject,
+ ${misc:Depends},
+Conflicts:
+ aic8800-pcie-dkms,
+ aic8800-sdio-dkms,
+Description: network driver for AIC8800 USB WiFi devices
+ aic8800 is the Linux device driver released for the AIC 8800 WiFi
+ controllers with USB interface.
+ .
+ This package provides the dkms source code for the aic8800 kernel modules.
+ Kernel source or headers are required to compile these modules.
