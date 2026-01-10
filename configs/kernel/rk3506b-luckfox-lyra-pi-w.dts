@@ -157,6 +157,8 @@
 
 &i2c2 {
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io1_i2c2_scl &rm_io0_i2c2_sda>;
 
 	es8311: es8311@18 {
 		compatible = "everest,es8311";
@@ -199,6 +201,18 @@
 	lcd {
 		lcd_pwren_h: lcd-pwren-h {
 			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+
+	rm_io0 {
+		rm_io0_i2c2_sda: rm-io0-i2c2-sda {
+			rockchip,pins = <0 RK_PA0 35 &pcfg_pull_up>;
+		};
+	};
+
+	rm_io1 {
+		rm_io1_i2c2_scl: rm-io1-i2c2-scl {
+			rockchip,pins = <0 RK_PA1 34 &pcfg_pull_up>;
 		};
 	};
 
