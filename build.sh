@@ -236,6 +236,13 @@ build_packages() (
     rm ../lyra-usb-gadget_*.{build,buildinfo}
     mv ../lyra-usb-gadget_*.deb $B/packages/
     mv ../lyra-usb-gadget_*.{changes,dsc,tar.xz} $B/source-packages/
+
+    cd $R/packages/aic8800
+    debuild -us -uc
+    rm ../aic8800_*.{build,buildinfo}
+    mv ../aic8800-*.deb $B/packages/
+    mv ../aic8800_*.{changes,debian.tar.xz,dsc} $B/source-packages/
+    cp ../aic8800_*.orig.tar.xz $B/source-packages/
 )
 
 #
