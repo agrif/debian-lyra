@@ -213,9 +213,12 @@ build_kernel() (
     make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j${JOBS} \
          EXTRAVERSION=-lyra LOCALVERSION= \
          KDEB_SOURCENAME=linux-lyra KDEB_CHANGELOG_DIST=$CODENAME deb-pkg
+
+    # move packages to $B
     rm linux.tar.gz
+    rm ../linux-lyra_*.buildinfo
     mv ../linux-*.deb $B/packages/
-    mv ../linux-lyra* $B/source-packages/
+    mv ../linux-lyra_*.{changes,debian.tar.gz,dsc,orig.tar.gz} $B/source-packages/
 
     # unstage dts
     git restore --staged arch/arm/boot/dts/rockchip/*.dts{,i}
@@ -230,8 +233,9 @@ build_packages() (
 
     cd $R/packages/lyra-usb-gadget
     debuild -us -uc
+    rm ../lyra-usb-gadget_*.{build,buildinfo}
     mv ../lyra-usb-gadget_*.deb $B/packages/
-    mv ../lyra-usb-gadget_* $B/source-packages/
+    mv ../lyra-usb-gadget_*.{changes,dsc,tar.xz} $B/source-packages/
 )
 
 #
