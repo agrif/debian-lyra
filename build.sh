@@ -204,6 +204,9 @@ build_kernel() (
     # (and more recent fixes, rolled into one)
     patch_idempotent -p1 -i ../../configs/kernel/cross-compile-linux-headers.patch
 
+    # fix DSI on one-lane displays, ported from lyra SDK
+    patch_idempotent -p1 -i ../../configs/kernel/fix-one-lane-dsi.patch
+
     # temporarily stage dts so deb-pkg picks it up
     git add arch/arm/boot/dts/rockchip/*.dts{,i}
 

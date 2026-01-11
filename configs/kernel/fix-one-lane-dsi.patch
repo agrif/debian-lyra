@@ -1,0 +1,53 @@
+diff --git a/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c b/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c
+index 111e3d1e59..b07a6b6c81 100644
+--- a/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c
++++ b/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c
+@@ -283,6 +283,7 @@ struct rockchip_dw_dsi_chip_data {
+ 
+ 	u32 lanecfg1_grf_reg;
+ 	u32 lanecfg1;
++	u32 lanecfg1_1_lane;
+ 	u32 lanecfg2_grf_reg;
+ 	u32 lanecfg2;
+ 
+@@ -341,6 +342,7 @@ struct dw_mipi_dsi_rockchip {
+ 	u16 feedback_div;
+ 	u32 format;
+ 	u32 mode_flags;
++	int lanes;
+ 
+ 	struct dw_mipi_dsi *dmd;
+ 	const struct rockchip_dw_dsi_chip_data *cdata;
+@@ -476,6 +478,10 @@ static void dw_mipi_dsi_phy_tx_config(struct dw_mipi_dsi_rockchip *dsi)
+ 	if (dsi->cdata->enable_grf_reg)
+ 		regmap_write(dsi->grf_regmap, dsi->cdata->enable_grf_reg,
+ 					      dsi->cdata->enable);
++
++	if (dsi->lanes == 1 && dsi->cdata->lanecfg1_1_lane)
++		regmap_write(dsi->grf_regmap, dsi->cdata->lanecfg1_grf_reg,
++					      dsi->cdata->lanecfg1_1_lane);
+ }
+ 
+ static int dw_mipi_dsi_phy_init(void *priv_data)
+@@ -666,6 +672,7 @@ dw_mipi_dsi_get_lane_mbps(void *priv_data, const struct drm_display_mode *mode,
+ 	int bpp, ret;
+ 
+ 	dsi->format = format;
++	dsi->lanes = lanes;
+ 	bpp = mipi_dsi_pixel_format_to_bpp(dsi->format);
+ 	if (bpp <= 0) {
+ 		DRM_DEV_ERROR(dsi->dev,
+@@ -1822,6 +1829,13 @@ static const struct rockchip_dw_dsi_chip_data rk3506_chip_data[] = {
+ 					  RK3506_DSI_PHY_ENABLE_LANE0 |
+ 					  RK3506_DSI_PHY_ENABLE_LANE1),
+ 
++		.lanecfg1_1_lane = HIWORD_UPDATE(RK3506_DSI_PHY_ENABLE_LANE0,
++					  RK3506_DSI_TURNDISABLE |
++					  RK3506_DSI_FORCERXMODE |
++					  RK3506_DSI_FORCETXSTOPMODE |
++					  RK3506_DSI_PHY_ENABLE_LANE0 |
++					  RK3506_DSI_PHY_ENABLE_LANE1),
++
+ 		.max_data_lanes = 2,
+ 		.max_bit_rate_per_lane = 1500000000UL,
+ 		.soc_type = RK3506,
