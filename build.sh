@@ -80,6 +80,7 @@ get_board_config() {
     # BOARD_NAME: used in image filename
     # BOARD_UBOOT: the u-boot binary inside $B/parts/ to use
     # BOARD_DT: the device tree name to set for u-boot-menu
+    # BOARD_PACKAGES: extra packages to install for this board (optional)
     case "$1" in
         lyra)
             BOARD_DESCRIPTION="Luckfox Lyra (A, B)"
@@ -104,12 +105,14 @@ get_board_config() {
             BOARD_NAME="luckfox-lyra-ultra-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-ultra-w.dtb"
+            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
             ;;
         lyra-zero-w)
             BOARD_DESCRIPTION="Luckfox Lyra Zero W (Wireless)"
             BOARD_NAME="luckfox-lyra-zero-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-zero-w.dtb"
+            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
             ;;
         lyra-pi-a)
             BOARD_DESCRIPTION="Luckfox Lyra Pi A (eMMC)"
@@ -122,6 +125,7 @@ get_board_config() {
             BOARD_NAME="luckfox-lyra-pi-a-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi-w.dtb"
+            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
             ;;
         lyra-pi-b)
             BOARD_DESCRIPTION="Luckfox Lyra Pi B (SD)"
@@ -134,6 +138,7 @@ get_board_config() {
             BOARD_NAME="luckfox-lyra-pi-b-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi-w-sd.dtb"
+            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
             ;;
 
         # board name not matched
@@ -276,10 +281,11 @@ build_image() (
 
     get_board_config "$1"
     debos --artifactdir=$B \
-          -t codename:$CODENAME \
-          -t board:$BOARD_NAME \
-          -t uboot:$BOARD_UBOOT \
-          -t devicetree:$BOARD_DT \
+          -t "codename:$CODENAME" \
+          -t "board:$BOARD_NAME" \
+          -t "uboot:$BOARD_UBOOT" \
+          -t "devicetree:$BOARD_DT" \
+          -t "packages:$BOARD_PACKAGES" \
           image.yaml
 )
 

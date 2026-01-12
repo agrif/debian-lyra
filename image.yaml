@@ -3,6 +3,7 @@
 {{- $uboot := or .uboot "u-boot-rk3506g.bin" -}}
 {{- $devicetree := or .devicetree "rk3506g-luckfox-lyra.dtb" -}}
 {{- $image := or .image (printf "%s-%s.img" $board $codename) -}}
+{{- $packages := or .packages "" }}
 
 architecture: armhf
 sectorsize: 512
@@ -80,8 +81,14 @@ actions:
     update: true
     recommends: true
     packages:
-      - linux-image-6.6.89+
+      - linux-image-6.6.89-lyra
       - lyra-usb-gadget
+
+  - action: apt
+    description: install extra packages
+    update: true
+    recommends: true
+    packages: {{ $packages }}
 
   # note: must run *after* filesystem deploy, to modify /etc/fstab
   - action: run
