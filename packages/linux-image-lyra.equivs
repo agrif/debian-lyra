@@ -1,0 +1,14 @@
+Package: linux-image-lyra
+Version: 6.6.89~1
+Depends: linux-image-6.6.89-lyra
+Provides: linux-image-generic
+Architecture: all
+Section: kernel
+Priority: optional
+Maintainer: Aaron Griffith <aargri@gmail.com>
+Homepage: https://github.com/agrif/debian-lyra
+Readme: equivs/README.Debian
+Copyright: equivs/copyright
+Description: Linux for Luckfox Lyra (meta-package)
+ This package depends on the latest Linux kernel and modules for use on
+ Luckfox Lyra boards.

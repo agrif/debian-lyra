@@ -1,0 +1,14 @@
+Package: linux-headers-lyra
+Version: 6.6.89~1
+Depends: linux-headers-6.6.89-lyra
+Provides: linux-headers-generic
+Architecture: all
+Section: kernel
+Priority: optional
+Maintainer: Aaron Griffith <aargri@gmail.com>
+Homepage: https://github.com/agrif/debian-lyra
+Readme: equivs/README.Debian
+Copyright: equivs/copyright
+Description: Header files for Linux for Luckfox Lyra (meta-package)
+ This package depends on the latest Linux header files for use on
+ Luckfox Lyra boards.

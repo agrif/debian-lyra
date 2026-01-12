@@ -251,6 +251,18 @@ build_packages() (
     mv ../aic8800-*.deb $B/packages/
     mv ../aic8800_*.{changes,debian.tar.xz,dsc} $B/source-packages/
     cp ../aic8800_*.orig.tar.xz $B/source-packages/
+
+    cd $R/packages
+    equivs-build -f linux-image-lyra.equivs
+    rm linux-image-lyra_*.buildinfo
+    mv linux-image-lyra_*.deb $B/packages/
+    mv linux-image-lyra_*.{changes,dsc,tar.xz} $B/source-packages/
+
+    cd $R/packages
+    equivs-build -f linux-headers-lyra.equivs
+    rm linux-headers-lyra_*.buildinfo
+    mv linux-headers-lyra_*.deb $B/packages/
+    mv linux-headers-lyra_*.{changes,dsc,tar.xz} $B/source-packages/
 )
 
 #

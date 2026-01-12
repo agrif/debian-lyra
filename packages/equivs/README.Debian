@@ -1,0 +1,13 @@
+@packagename@ for Debian
+
+
+This is a dummy package used to keep your system up to date even as
+package names and versions shift. It contains nothing itself, but
+depends on other packages as needed.
+
+The special dependencies used in this package are:
+
+@depends@
+
+Uninstalling this package is not recommended, and may break updates to
+your system.
