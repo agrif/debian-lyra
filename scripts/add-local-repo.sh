@@ -6,7 +6,10 @@ apt-ftparchive packages . > Packages
 apt-ftparchive contents . > Contents
 apt-ftparchive release . > Release
 
-cat > /etc/apt/sources.list.d/lyra-local.list <<EOF
+cat > /etc/apt/sources.list.d/lyra-local.sources <<EOF
 # local repository for lyra-specific packages
-deb [trusted=yes] file:/opt/lyra-packages/ ./
+Types: deb
+URIs: file:/opt/lyra-packages
+Suites: ./
+Trusted: yes
 EOF

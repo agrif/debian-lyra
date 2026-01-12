@@ -3,16 +3,20 @@
 CODENAME=$1
 [ "$CODENAME" ] || exit 1
 
-cat > /etc/apt/sources.list <<EOF
-# $CODENAME main repo
-deb https://deb.debian.org/debian/ $CODENAME main contrib non-free non-free-firmware
-deb-src https://deb.debian.org/debian/ $CODENAME main contrib non-free non-free-firmware
+rm -f /etc/apt/sources.list
+
+cat > /etc/apt/sources.list.d/debian.sources <<EOF
+# $CODENAME main and updates repo
+Types: deb deb-src
+URIs: https://deb.debian.org/debian/
+Suites: $CODENAME $CODENAME-updates
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 # $CODENAME security repo
-deb https://security.debian.org/debian-security $CODENAME-security main contrib non-free non-free-firmware
-deb-src https://security.debian.org/debian-security $CODENAME-security main contrib non-free non-free-firmware
-
-# $CODENAME updates repo
-deb https://deb.debian.org/debian/ $CODENAME-updates main contrib non-free non-free-firmware
-deb-src https://deb.debian.org/debian/ $CODENAME-updates main contrib non-free non-free-firmware
+Types: deb deb-src
+URIs: https://security.debian.org/debian-security
+Suites: $CODENAME-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
