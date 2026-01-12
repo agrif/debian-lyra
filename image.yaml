@@ -81,7 +81,7 @@ actions:
     update: true
     recommends: true
     packages:
-      - linux-image-6.6.89-lyra
+      - linux-image-lyra
       - lyra-usb-gadget
 
   - action: apt

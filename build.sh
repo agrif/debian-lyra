@@ -105,14 +105,14 @@ get_board_config() {
             BOARD_NAME="luckfox-lyra-ultra-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-ultra-w.dtb"
-            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
+            BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
         lyra-zero-w)
             BOARD_DESCRIPTION="Luckfox Lyra Zero W (Wireless)"
             BOARD_NAME="luckfox-lyra-zero-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-zero-w.dtb"
-            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
+            BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
         lyra-pi-a)
             BOARD_DESCRIPTION="Luckfox Lyra Pi A (eMMC)"
@@ -125,7 +125,7 @@ get_board_config() {
             BOARD_NAME="luckfox-lyra-pi-a-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi-w.dtb"
-            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
+            BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
         lyra-pi-b)
             BOARD_DESCRIPTION="Luckfox Lyra Pi B (SD)"
@@ -138,7 +138,7 @@ get_board_config() {
             BOARD_NAME="luckfox-lyra-pi-b-w"
             BOARD_UBOOT="u-boot-rk3506b.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi-w-sd.dtb"
-            BOARD_PACKAGES="[linux-headers-6.6.89-lyra, aic8800-usb-dkms]"
+            BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
 
         # board name not matched
