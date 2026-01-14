@@ -83,6 +83,7 @@ actions:
     packages:
       - linux-image-lyra
       - lyra-usb-gadget
+      - lyra-overlays
 
   - action: apt
     description: install extra packages

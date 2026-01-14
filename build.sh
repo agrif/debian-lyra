@@ -245,6 +245,12 @@ build_packages() (
     mv ../lyra-usb-gadget_*.deb $B/packages/
     mv ../lyra-usb-gadget_*.{changes,dsc,tar.xz} $B/source-packages/
 
+    cd $R/packages/lyra-overlays
+    debuild -us -uc
+    rm ../lyra-overlays_*.{build,buildinfo}
+    mv ../lyra-overlays_*.deb $B/packages/
+    mv ../lyra-overlays_*.{changes,dsc,tar.xz} $B/source-packages/
+
     cd $R/packages/aic8800
     debuild -us -uc
     rm ../aic8800_*.{build,buildinfo}
