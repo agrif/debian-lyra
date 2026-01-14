@@ -16,7 +16,7 @@ Install dependencies:
     sudo apt-get install bmaptool build-essential debhelper debos \
         device-tree-compiler devscripts dh-dkms dh-python equivs \
         gcc-arm-linux-gnueabihf libgnutls-openssl-dev lz4 \
-        python3-pyelftools xz-utils
+        pybuild-plugin-pyproject python3-pyelftools xz-utils
 
 Build image:
 
