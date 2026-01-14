@@ -2,6 +2,7 @@ import argparse
 import contextlib
 import dataclasses
 import datetime
+import importlib.resources
 import os
 import pathlib
 import shutil
@@ -90,19 +91,16 @@ class Sources:
     @classmethod
     def discover(self):
         here = pathlib.Path(__file__)
-        local = here.parent.parent / 'overlays'
-        installed  = pathlib.Path('/usr/src/lyra-overlays')
+        local = here.parent / 'overlays'
 
-        paths = [local, installed]
+        paths = [local]
         for path in paths:
             kconfig = path / 'Kconfig'
             lbuild = path / 'Lbuild'
             if path.is_dir() and kconfig.is_file() and lbuild.is_file():
                 return path
 
-        raise RuntimeError('could not find overlays, tried: {}'.format(
-            ' '.join(str(p) for p in paths),
-        ))
+        return None
 
     @property
     def path(self):
@@ -535,6 +533,11 @@ class Builder:
 
 
 def main():
+    with contextlib.ExitStack() as ctx:
+        main_with_ctx(ctx)
+
+
+def main_with_ctx(ctx):
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-n', '--dry-run', action='store_true',
@@ -562,6 +565,9 @@ def main():
         args.skip_config = True
 
     src_path = args.source if args.source else Sources.discover()
+    if not src_path:
+        resources = importlib.resources.files('lyra_overlays.overlays')
+        src_path = ctx.enter_context(importlib.resources.as_file(resources))
     src = Sources(src_path)
 
     cfg_path = args.config if args.config else Configuration.discover()
