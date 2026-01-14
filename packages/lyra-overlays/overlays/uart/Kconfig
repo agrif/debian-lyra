@@ -1,0 +1,15 @@
+menu "UART"
+
+UART_NUM = 1
+source "uart/Kconfig.uart"
+
+UART_NUM = 2
+source "uart/Kconfig.uart"
+
+UART_NUM = 3
+source "uart/Kconfig.uart-cstn-rstn"
+
+UART_NUM = 4
+source "uart/Kconfig.uart-cstn-rstn"
+
+endmenu

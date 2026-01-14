@@ -1,0 +1,14 @@
+config UART$(UART_NUM)
+	bool "Enable UART$(UART_NUM)"
+
+config UART$(UART_NUM)_TX
+	int "TX pin"
+	depends on UART$(UART_NUM)
+	range 0 31
+	default 0
+
+config UART$(UART_NUM)_RX
+	int "RX pin"
+	depends on UART$(UART_NUM)
+	range 0 31
+	default 0

@@ -1,0 +1,38 @@
+mainmenu "Luckfox Lyra Device Configuration"
+
+choice BOARD
+	bool "Board"
+	default BOARD_UNLOCKED
+	help
+	  Setting this option correctly will lock-in the configuration
+	  options required by your board to function normally. Setting
+	  this to the wrong option may prevent your board from functioning
+	  properly, and in rare cases, may damage your board.
+
+config BOARD_LYRA
+	bool "Luckfox Lyra A/B"
+
+config BOARD_LYRA_PLUS
+	bool "Luckfox Lyra Plus"
+
+config BOARD_LYRA_ULTRA
+	bool "Luckfox Lyra Ultra"
+
+config BOARD_LYRA_ULTRA_W
+	bool "Luckfox Lyra Ultra W"
+
+config BOARD_LYRA_ZERO_W
+	bool "Luckfox Lyra Zero W"
+
+config BOARD_LYRA_PI
+	bool "Luckfox Lyra Pi A/B"
+
+config BOARD_LYRA_PI_W
+	bool "Luckfox Lyra Pi A/B W"
+
+config BOARD_UNLOCKED
+	bool "No Board Set (DANGER)"
+
+endchoice
+
+source "uart/Kconfig"

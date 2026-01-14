@@ -1,0 +1,11 @@
+/dts-v1/;
+/plugin/;
+
+#include <config.h>
+#include <rmio.h>
+
+&uart2 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&RM_IO(CONFIG_UART2_TX, uart2_tx) &RM_IO(CONFIG_UART2_RX, uart2_rx)>;
+};

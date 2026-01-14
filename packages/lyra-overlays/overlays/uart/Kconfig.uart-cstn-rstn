@@ -1,0 +1,21 @@
+source "uart/Kconfig.uart"
+
+config UART$(UART_NUM)_USE_CTSN
+	bool "Use /CTS pin"
+	depends on UART$(UART_NUM)
+
+config UART$(UART_NUM)_CTSN
+	int "/CTS pin"
+	depends on UART$(UART_NUM)_USE_CTSN
+	range 0 31
+	default 0
+
+config UART$(UART_NUM)_USE_RTSN
+	bool "Use /RTS pin"
+	depends on UART$(UART_NUM)
+
+config UART$(UART_NUM)_RTSN
+	int "/RTS pin"
+	depends on UART$(UART_NUM)_USE_RTSN
+	range 0 31
+	default 0
