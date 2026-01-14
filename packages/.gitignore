@@ -1,0 +1,8 @@
+# built packages end up here (thank you debian)
+/*.deb
+/*.dsc
+/*.tar.xz
+!/*.orig.tar.xz
+/*.build
+/*.buildinfo
+/*.changes
