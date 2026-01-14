@@ -1,0 +1,7 @@
+__pycache__
+
+/.eggs
+/build
+/dist
+/site
+/lyra_overlays.egg-info

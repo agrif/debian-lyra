@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import contextlib
 import dataclasses
@@ -92,7 +90,7 @@ class Sources:
     @classmethod
     def discover(self):
         here = pathlib.Path(__file__)
-        local = here.parent / 'overlays'
+        local = here.parent.parent / 'overlays'
         installed  = pathlib.Path('/usr/src/lyra-overlays')
 
         paths = [local, installed]
