@@ -6,8 +6,14 @@ readme = 'README.md'
 authors = [
     {name = 'Aaron Griffith', email = 'aargri@gmail.com'},
 ]
-license = 'GPL-3.0-or-later'
-license-files = ['COPYING.md']
+
+# this is the new format, supported on Debian 13 (trixie)
+# but not on Ubuntu 24.04 (noble), which is the GitHub builder
+#license = 'GPL-3.0-or-later'
+#license-files = ['COPYING.md']
+
+# old format
+license = {file = 'COPYING.md'}
 
 urls.Source = 'https://github.com/agrif/debian-lyra'
 
