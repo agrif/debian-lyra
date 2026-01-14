@@ -1,7 +1,7 @@
 [project]
 name = 'lyra-overlays'
 version = '0.1'
-description = 'build and install overlays on Luckfox Lyra boards'
+description = 'build and install device tree overlays on Luckfox Lyra boards'
 readme = 'README.md'
 authors = [
     {name = 'Aaron Griffith', email = 'aargri@gmail.com'},

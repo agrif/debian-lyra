@@ -1,0 +1,28 @@
+Source: lyra-overlays
+Section: kernel
+Priority: optional
+Maintainer: Aaron Griffith <aargri@gmail.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ python3,
+Standards-Version: 4.7.2
+Homepage: https://github.com/agrif/debian-lyra
+Vcs-Browser: https://github.com/agrif/debian-lyra
+Vcs-Git: https://github.com/agrif/debian-lyra.git
+
+Package: lyra-overlays
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ cpp,
+ device-tree-compiler,
+Recommends:
+ linux-headers-lyra,
+ u-boot-menu,
+Description: build and install device tree overlays on Luckfox Lyra boards
+ This tool configures, builds, and installs device tree overlays on
+ Luckfox Lyra boards. It comes with a selection of useful overlays
+ for on-board peripherals and various displays.
