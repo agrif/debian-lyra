@@ -590,64 +590,66 @@ def main_with_ctx(ctx):
     else:
         dt = None
 
-    with tempfile.TemporaryDirectory(prefix='lyra-overlays.') as build_dir:
-        build_dir = pathlib.Path(build_dir)
-        build = Builder(build_dir, src=src, cfg=cfg, out=out, dt=dt)
+    build_dir = ctx.enter_context(
+        tempfile.TemporaryDirectory(prefix='lyra-overlays.'))
 
-        if not args.dry_run:
-            perms = []
-            if not args.skip_config:
-                perms += build.install_config_check_permissions()
-            perms += build.install_build_check_permissions()
+    build_dir = pathlib.Path(build_dir)
+    build = Builder(build_dir, src=src, cfg=cfg, out=out, dt=dt)
 
-            if perms:
-                print('ERROR: I need permission to write to the following:',
+    if not args.dry_run:
+        perms = []
+        if not args.skip_config:
+            perms += build.install_config_check_permissions()
+        perms += build.install_build_check_permissions()
+
+        if perms:
+            print('ERROR: I need permission to write to the following:',
+                  file=sys.stderr)
+            print('', file=sys.stderr)
+            for fname in perms:
+                print('  ', fname, file=sys.stderr)
+            print('', file=sys.stderr)
+            print('You may want to run as root, or use options to',
+                  file=sys.stderr)
+            print('override those locations.', file=sys.stderr)
+            sys.exit(1)
+
+    if not args.skip_config:
+        build.configure()
+
+    build.build()
+    if not args.skip_check:
+        while not build.check():
+            print('', file=sys.stderr)
+
+            retry = False
+            if not args.skip_config and not args.batch:
+                while True:
+                    print('Reconfigure [Y/n]? ', file=sys.stderr, end='')
+                    sys.stderr.flush()
+                    y_or_n = _read_one_char()
+                    if y_or_n.upper() not in 'YN\r\n':
+                        print('', file=sys.stderr)
+                        print('Please enter Y or N.', file=sys.stderr)
+                    else:
+                        break
+                print(y_or_n, file=sys.stderr)
+                if y_or_n.upper() in 'Y\r\n':
+                    retry = True
+
+            if not retry:
+                print('ERROR: resolve these problems and retry.',
                       file=sys.stderr)
-                print('', file=sys.stderr)
-                for fname in perms:
-                    print('  ', fname, file=sys.stderr)
-                print('', file=sys.stderr)
-                print('You may want to run as root, or use options to',
-                      file=sys.stderr)
-                print('override those locations.', file=sys.stderr)
                 sys.exit(1)
 
-        if not args.skip_config:
             build.configure()
+            build.clean()
+            build.build()
 
-        build.build()
-        if not args.skip_check:
-            while not build.check():
-                print('', file=sys.stderr)
-
-                retry = False
-                if not args.skip_config and not args.batch:
-                    while True:
-                        print('Reconfigure [Y/n]? ', file=sys.stderr, end='')
-                        sys.stderr.flush()
-                        y_or_n = _read_one_char()
-                        if y_or_n.upper() not in 'YN\r\n':
-                            print('', file=sys.stderr)
-                            print('Please enter Y or N.', file=sys.stderr)
-                        else:
-                            break
-                    print(y_or_n, file=sys.stderr)
-                    if y_or_n.upper() in 'Y\r\n':
-                        retry = True
-
-                if not retry:
-                    print('ERROR: resolve these problems and retry.',
-                          file=sys.stderr)
-                    sys.exit(1)
-
-                build.configure()
-                build.clean()
-                build.build()
-
-        if not args.dry_run:
-            build.install_build()
-            if not args.skip_config:
-                build.install_config()
+    if not args.dry_run:
+        build.install_build()
+        if not args.skip_config:
+            build.install_config()
 
 
 if __name__ == '__main__':
