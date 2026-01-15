@@ -30,6 +30,7 @@
 		rockchip,irq-mode-enable = <1>;
 		rockchip,baudrate = <1500000>;	/* Only 115200 and 1500000 */
 		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH>;
+		status = "disabled";
 	};
 
 	leds: leds {
@@ -102,6 +103,11 @@
 /**********cpu**********/
 &cpu0 {
 	cpu-supply = <&vdd_cpu>;
+	status = "okay";
+};
+
+/*********uart0*********/
+&uart0 {
 	status = "okay";
 };
 
