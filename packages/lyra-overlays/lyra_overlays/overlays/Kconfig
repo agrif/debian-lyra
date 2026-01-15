@@ -11,27 +11,34 @@ choice BOARD
 
 config BOARD_LYRA
 	bool "Luckfox Lyra A/B"
+	select UART0
 
 config BOARD_LYRA_PLUS
 	bool "Luckfox Lyra Plus"
+	select UART0
 
 config BOARD_LYRA_ULTRA
 	bool "Luckfox Lyra Ultra"
+	select UART0
 
 config BOARD_LYRA_ULTRA_W
 	bool "Luckfox Lyra Ultra W"
+	select UART0
 
 config BOARD_LYRA_ZERO_W
 	bool "Luckfox Lyra Zero W"
+	select UART0
 
 config BOARD_LYRA_PI
 	bool "Luckfox Lyra Pi A/B"
+	select UART0
 
 config BOARD_LYRA_PI_W
 	bool "Luckfox Lyra Pi A/B W"
+	select UART0
 
 config BOARD_UNLOCKED
-	bool "No Board Set (DANGER)"
+	bool "unlock all options (DANGER)"
 
 endchoice
 

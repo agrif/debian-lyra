@@ -1,5 +1,22 @@
 menu "UART"
 
+config UART0
+	bool "Enable UART0"
+	default y
+	help
+	  UART0 is used for the serial console by default. Disabling
+	  this will also disable the serial console unless you have made
+	  other arrangements!
+
+comment "TX pin is always 22 (GPIO0_C6)"
+	depends on UART0
+
+comment "RX pin is always 23 (GPIO0_C7)"
+	depends on UART0
+
+comment "WARNING: UART0 is the default serial console!"
+	depends on !UART0
+
 UART_NUM = 1
 source "uart/Kconfig.uart"
 
