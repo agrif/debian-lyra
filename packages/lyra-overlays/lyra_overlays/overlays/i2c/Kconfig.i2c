@@ -1,0 +1,20 @@
+config I2C$(I2C_NUM)
+	bool "Enable I2C$(I2C_NUM)"
+
+config I2C$(I2C_NUM)_FREQUENCY
+	int "clock frequency (in Hz)"
+	depends on I2C$(I2C_NUM)
+	range 1000 1000000
+	default 100000
+
+config I2C$(I2C_NUM)_SCL
+	int "SCL pin"
+	depends on I2C$(I2C_NUM)
+	range 0 31
+	default 0
+
+config I2C$(I2C_NUM)_SDA
+	int "SDA pin"
+	depends on I2C$(I2C_NUM)
+	range 0 31
+	default 0

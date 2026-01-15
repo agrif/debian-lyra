@@ -1,0 +1,15 @@
+/dts-v1/;
+/plugin/;
+
+#include <config.h>
+#include <rmio.h>
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <CONFIG_I2C0_FREQUENCY>;
+	pinctrl-names = "default";
+	pinctrl-0 = <
+		&RM_IO(CONFIG_I2C0_SCL, i2c0_scl)
+		&RM_IO(CONFIG_I2C0_SDA, i2c0_sda)
+	>;
+};

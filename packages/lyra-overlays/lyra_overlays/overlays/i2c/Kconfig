@@ -1,0 +1,12 @@
+menu "I2C"
+
+I2C_NUM = 0
+source "i2c/Kconfig.i2c"
+
+I2C_NUM = 1
+source "i2c/Kconfig.i2c"
+
+I2C_NUM = 2
+source "i2c/Kconfig.i2c"
+
+endmenu
