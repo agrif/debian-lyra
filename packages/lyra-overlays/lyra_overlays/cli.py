@@ -10,7 +10,7 @@ import tty
 
 from .build import Build
 from .devicetree import DeviceTree
-from .sources import Sources, DtsoRule
+from .sources import Sources
 
 
 def _read_one_char():
@@ -81,23 +81,39 @@ def main():
 def main_with_ctx(ctx):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-n', '--dry-run', action='store_true',
-        help='configure and build only, do not install or update config')
-    parser.add_argument('--skip-config', action='store_true',
-        help='skip the configuration menu, use existing config unmodified')
-    parser.add_argument('--skip-check', action='store_true',
-        help='skip the overlay checks')
-    parser.add_argument('-b', '--batch', action='store_true',
-        help='do not ask for input')
+    parser.add_argument(
+        '-n', '--dry-run', action='store_true',
+        help='configure and build only, do not install or update config',
+    )
+    parser.add_argument(
+        '--skip-config', action='store_true',
+        help='skip the configuration menu, use existing config unmodified',
+    )
+    parser.add_argument(
+        '--skip-check', action='store_true',
+        help='skip the overlay checks',
+    )
+    parser.add_argument(
+        '-b', '--batch', action='store_true',
+        help='do not ask for input',
+    )
 
-    parser.add_argument('-s', '--source', type=pathlib.Path,
-        help='override source location of overlays')
-    parser.add_argument('-c', '--config', type=pathlib.Path,
-        help='override configuration path to use')
-    parser.add_argument('-o', '--output', type=pathlib.Path,
-        help='override output path for overlays')
-    parser.add_argument('-d', '--device-tree', type=pathlib.Path,
-        help='override device tree to test against')
+    parser.add_argument(
+        '-s', '--source', type=pathlib.Path,
+        help='override source location of overlays',
+    )
+    parser.add_argument(
+        '-c', '--config', type=pathlib.Path,
+        help='override configuration path to use',
+    )
+    parser.add_argument(
+        '-o', '--output', type=pathlib.Path,
+        help='override output path for overlays',
+    )
+    parser.add_argument(
+        '-d', '--device-tree', type=pathlib.Path,
+        help='override device tree to test against',
+    )
 
     args = parser.parse_args()
 
@@ -120,7 +136,7 @@ def main_with_ctx(ctx):
     dt_path = args.device_tree if args.device_tree else DeviceTree.discover()
     if not args.skip_check:
         if not dt_path:
-            print(f'ERROR: could not find DT to check against',
+            print('ERROR: could not find DT to check against',
                   file=sys.stderr)
             sys.exit(1)
         dt = DeviceTree(dt_path)

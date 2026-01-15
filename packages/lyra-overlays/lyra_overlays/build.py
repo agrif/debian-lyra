@@ -52,7 +52,8 @@ class Build:
         self._out = out
         self._dt = dt
 
-        uname = subprocess.run(['uname', '-r'], check=True, capture_output=True)
+        uname = subprocess.run(['uname', '-r'],
+                               check=True, capture_output=True)
         uname = uname.stdout.decode('utf-8').strip()
         self._cpp_flags = [
             '-nostdinc', '-undef', '-x', 'assembler-with-cpp',
@@ -145,7 +146,8 @@ class Build:
                     continue
                 for phandle in props[k].as_list('I'):
                     node_off = dtb.node_offset_by_phandle(phandle)
-                    self._check_pinctrl(check_dt, dtb, node_off, pinmap, node, k)
+                    self._check_pinctrl(
+                        check_dt, dtb, node_off, pinmap, node, k)
 
         success = True
         for pin, users in pinmap.items():
@@ -157,7 +159,8 @@ class Build:
             # * all of them are the same node
             # * all of them are distinct properties
             first_user, first_prop, _ = users[0]
-            if all(u[0] == first_user and u[1] != first_prop for u in users[1:]):
+            if all(u[0] == first_user and u[1] != first_prop
+                   for u in users[1:]):
                 continue
 
             success = False
@@ -169,19 +172,21 @@ class Build:
                 name = f'{rmio} ({pin})'
 
             print('', file=sys.stderr)
-            print(f'ERROR: pin {name} is used more than once:', file=sys.stderr)
+            print(f'ERROR: pin {name} is used more than once:',
+                  file=sys.stderr)
             for (user, prop, pinctrl) in users:
                 pinctrl_name = names.get(user, {}).get(prop)
                 pinctrl_name = f' ({pinctrl_name!r})'
                 if user in symbols:
                     user = '&' + symbols[user]
-                print(f'  {user:20s} {prop}{pinctrl_name} {pinctrl}', file=sys.stderr)
+                print(f'  {user:20s} {prop}{pinctrl_name} {pinctrl}',
+                      file=sys.stderr)
 
         return success
 
     def _check_pinctrl(self, check_dt, dtb, node_off, pinmap, user, user_prop):
         for dtb, node, props in check_dt.walk_node(dtb, node_off):
-            if not 'rockchip,pins' in props:
+            if 'rockchip,pins' not in props:
                 raise RuntimeError(f'pinctrl with no pins: {node}')
             pins = props['rockchip,pins'].as_list('I')
             if not len(pins) % 4 == 0:
@@ -193,8 +198,8 @@ class Build:
                 letter = chr(ord('A') + pin[1] // 8)
                 number = pin[1] % 8
                 name = f'GPIO{bank}_{letter}{number}'
-                function = pin[2]
-                config = pin[3]
+                # function = pin[2]
+                # config = pin[3]
 
                 pinmap.setdefault(name, []).append((user, user_prop, node))
 

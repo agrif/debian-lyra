@@ -1,5 +1,6 @@
 import libfdt
 
+
 class DeviceTree:
     def __init__(self, path):
         self._path = path

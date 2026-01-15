@@ -106,7 +106,7 @@ class Sources:
                 target, *expr = line.split()
                 try:
                     rule = self._parse_rule(path / target, ' '.join(expr))
-                except LBuildError as e:
+                except LBuildError:
                     raise
                 except Exception as e:
                     raise LBuildError(
@@ -148,7 +148,8 @@ class Sources:
     def _call_kconfig(self, name, config_path, *args):
         env = os.environ.copy()
         env['KCONFIG_CONFIG'] = config_path
-        subprocess.run([sys.executable, '-m', name, *args], env=env, check=True)
+        subprocess.run([sys.executable, '-m', name, *args],
+                       env=env, check=True)
 
     def genconfig(self, config_path, output_path):
         self.load_config(config_path).write_autoconf(output_path)
