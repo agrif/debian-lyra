@@ -7,5 +7,8 @@
 &uart1 {
 	status = "okay";
 	pinctrl-names = "default";
-	pinctrl-0 = <&RM_IO(CONFIG_UART1_TX, uart1_tx) &RM_IO(CONFIG_UART1_RX, uart1_rx)>;
+	pinctrl-0 = <
+		&RM_IO(CONFIG_UART1_TX, uart1_tx)
+		&RM_IO(CONFIG_UART1_RX, uart1_rx)
+	>;
 };

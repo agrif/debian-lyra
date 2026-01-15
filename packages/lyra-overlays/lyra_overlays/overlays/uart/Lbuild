@@ -1,4 +1,4 @@
 uart1.dtso UART1
 uart2.dtso UART2
-#uart3.dtso UART3
-#uart4.dtso UART4
+uart3.dtso UART3
+uart4.dtso UART4

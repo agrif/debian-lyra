@@ -1,0 +1,22 @@
+/dts-v1/;
+/plugin/;
+
+#include <config.h>
+#include <rmio.h>
+
+&uart3 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <
+		&RM_IO(CONFIG_UART3_TX, uart3_tx)
+		&RM_IO(CONFIG_UART3_RX, uart3_rx)
+
+		#ifdef CONFIG_UART3_USE_CTSN
+		&RM_IO(CONFIG_UART3_CTSN, uart3_ctsn)
+		#endif
+
+		#ifdef CONFIG_UART3_USE_RTSN
+		&RM_IO(CONFIG_UART3_RTSN, uart3_rtsn)
+		#endif
+	>;
+};
