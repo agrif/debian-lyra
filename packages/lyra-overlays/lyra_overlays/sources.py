@@ -63,26 +63,12 @@ class Sources:
         self._kconfig_path = path / 'Kconfig'
 
         os.environ['srctree'] = str(path)
-        self._kconfig = kconfiglib.Kconfig(self._kconfig_path,
+        self._kconfig = kconfiglib.Kconfig(self._kconfig_path.name,
                                            warn_to_stderr=False)
         with _wrap_kconfig(self._kconfig, reset=False):
             pass
 
         self._lbuild = self._read_lbuild(path)
-
-    @classmethod
-    def discover(self):
-        here = pathlib.Path(__file__)
-        local = here.parent / 'overlays'
-
-        paths = [local]
-        for path in paths:
-            kconfig = path / 'Kconfig'
-            lbuild = path / 'Lbuild'
-            if path.is_dir() and kconfig.is_file() and lbuild.is_file():
-                return path
-
-        return None
 
     @property
     def path(self):

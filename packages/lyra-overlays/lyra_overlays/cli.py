@@ -1,6 +1,5 @@
 import argparse
 import contextlib
-import importlib.resources
 import os
 import pathlib
 import sys
@@ -10,6 +9,7 @@ import tty
 
 from .build import Build
 from .devicetree import DeviceTree
+from . import discover
 from .sources import Sources
 
 
@@ -121,11 +121,10 @@ def main_with_ctx(ctx):
     if args.batch:
         args.skip_config = True
 
-    src_path = args.source if args.source else Sources.discover()
-    if not src_path:
-        resources = importlib.resources.files('lyra_overlays.overlays')
-        src_path = ctx.enter_context(importlib.resources.as_file(resources))
-    src = Sources(src_path)
+    src_res = discover.sources('-s/--sources', args.source)
+    if src_res.check_and_print(ctx):
+        sys.exit(1)
+    src = Sources(src_res.path)
 
     cfg_path = args.config if args.config else Configuration.discover()
     cfg = Configuration(cfg_path)
