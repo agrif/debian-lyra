@@ -5,7 +5,7 @@ import pathlib
 import subprocess
 import sys
 
-import kconfiglib
+import kconfiglib  # type: ignore
 
 
 class LBuildError(Exception):

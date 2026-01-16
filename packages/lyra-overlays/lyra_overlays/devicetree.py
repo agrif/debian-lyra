@@ -1,4 +1,4 @@
-import libfdt
+import libfdt  # type: ignore
 
 
 class DeviceTree:
