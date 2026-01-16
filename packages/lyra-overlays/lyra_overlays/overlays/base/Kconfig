@@ -1,0 +1,22 @@
+menu "Set hardware enabled in base DT for generic board (advanced)"
+	visible if BOARD_GENERIC
+
+comment "WARNING: Adding base hardware may break things!"
+	depends on BOARD_GENERIC
+
+config HAS_BASE_UART0
+	bool "UART0 Enabled in Base"
+	select UART0 if !MODIFY_BASE
+	imply UART0
+
+endmenu
+
+menu "Configure base hardware (advanced)"
+
+config MODIFY_BASE
+	bool "Allow modifying base hardware"
+
+comment "WARNING: Disabling or changing default hardware may break things!"
+	depends on MODIFY_BASE
+
+endmenu

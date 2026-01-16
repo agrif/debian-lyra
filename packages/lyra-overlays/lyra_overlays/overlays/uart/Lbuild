@@ -1,4 +1,5 @@
-disable-uart0.dtso !UART0
+uart0.dtso UART0 && !HAS_BASE_UART0
+disable-uart0.dtso !UART0 && HAS_BASE_UART0
 uart1.dtso UART1
 uart2.dtso UART2
 uart3.dtso UART3

@@ -1,0 +1,8 @@
+/dts-v1/;
+/plugin/;
+
+&uart0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_xfer_pins>;
+};
