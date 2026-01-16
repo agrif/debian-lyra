@@ -1,0 +1,6 @@
+/dts-v1/;
+/plugin/;
+
+&tcs8563 {
+	status = "disabled";
+};

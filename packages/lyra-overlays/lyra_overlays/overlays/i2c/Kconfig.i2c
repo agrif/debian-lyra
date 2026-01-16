@@ -1,6 +1,8 @@
 config I2C$(I2C_NUM)
 	bool "Enable I2C$(I2C_NUM)"
 
+if !($(I2C_COMMON))
+
 config I2C$(I2C_NUM)_FREQUENCY
 	int "clock frequency (in Hz)"
 	depends on I2C$(I2C_NUM)
@@ -18,3 +20,5 @@ config I2C$(I2C_NUM)_SDA
 	depends on I2C$(I2C_NUM)
 	range 0 31
 	default 0
+
+endif

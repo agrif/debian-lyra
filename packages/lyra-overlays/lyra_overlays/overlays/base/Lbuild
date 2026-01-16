@@ -1,0 +1,2 @@
+disable-es8311.dtso !BASE_ES8311 && HAS_BASE_ES8311
+disable-tcs8563.dtso !BASE_TCS8563 && HAS_BASE_TCS8563

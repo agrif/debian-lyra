@@ -9,6 +9,25 @@ config HAS_BASE_UART0
 	select UART0 if !MODIFY_BASE
 	imply UART0
 
+config HAS_BASE_I2C2
+	bool "I2C2 Enabled in Base"
+	select I2C2 if !MODIFY_BASE
+	select I2C2_SCL1_SDA0 if !MODIFY_BASE
+	imply I2C2
+	imply I2C2_SCL1_SDA0
+
+config HAS_BASE_ES8311
+	bool "Everest ES8311 Soundcard Enabled in Base"
+	select HAS_BASE_I2C2
+	select BASE_ES8311 if !MODIFY_BASE
+	imply BASE_ES8311
+
+config HAS_BASE_TCS8563
+	bool "TCS8563 RTC Enabled in Base"
+	select HAS_BASE_I2C2
+	select BASE_TCS8563 if !MODIFY_BASE
+	imply BASE_TCS8563
+
 endmenu
 
 menu "Configure base hardware (advanced)"
@@ -18,5 +37,17 @@ config MODIFY_BASE
 
 comment "WARNING: Disabling or changing default hardware may break things!"
 	depends on MODIFY_BASE
+
+config BASE_ES8311
+	bool "Enable Everest ES8311 Soundcard"
+	depends on HAS_BASE_ES8311
+	select I2C2
+	select I2C2_SCL1_SDA0
+
+config BASE_TCS8563
+	bool "Enable TCS8563 RTC"
+	depends on HAS_BASE_TCS8563
+	select I2C2
+	select I2C2_SCL1_SDA0
 
 endmenu

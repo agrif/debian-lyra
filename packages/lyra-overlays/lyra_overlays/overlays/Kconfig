@@ -23,10 +23,12 @@ config BOARD_LYRA_PLUS
 config BOARD_LYRA_ULTRA
 	bool "Luckfox Lyra Ultra"
 	select HAS_BASE_UART0
+	select HAS_BASE_TCS8563
 
 config BOARD_LYRA_ULTRA_W
 	bool "Luckfox Lyra Ultra W"
 	select HAS_BASE_UART0
+	select HAS_BASE_TCS8563
 
 config BOARD_LYRA_ZERO_W
 	bool "Luckfox Lyra Zero W"
@@ -35,10 +37,12 @@ config BOARD_LYRA_ZERO_W
 config BOARD_LYRA_PI
 	bool "Luckfox Lyra Pi A/B"
 	select HAS_BASE_UART0
+	select HAS_BASE_ES8311
 
 config BOARD_LYRA_PI_W
 	bool "Luckfox Lyra Pi A/B W"
 	select HAS_BASE_UART0
+	select HAS_BASE_ES8311
 
 endchoice
 

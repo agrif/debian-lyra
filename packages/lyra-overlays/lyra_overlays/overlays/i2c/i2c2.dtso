@@ -4,6 +4,12 @@
 #include <config.h>
 #include <rmio.h>
 
+#ifdef CONFIG_I2C2_SCL1_SDA0
+#define CONFIG_I2C2_FREQUENCY 100000
+#define CONFIG_I2C2_SCL 1
+#define CONFIG_I2C2_SDA 0
+#endif
+
 &i2c2 {
 	status = "okay";
 	clock-frequency = <CONFIG_I2C2_FREQUENCY>;

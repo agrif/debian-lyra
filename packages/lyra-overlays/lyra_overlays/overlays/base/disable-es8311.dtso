@@ -1,0 +1,10 @@
+/dts-v1/;
+/plugin/;
+
+&es8311 {
+	status = "disabled";
+};
+
+&es8311_sound {
+	status = "disabled";
+};

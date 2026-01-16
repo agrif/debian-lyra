@@ -1,12 +1,19 @@
 menu "I2C"
 
 I2C_NUM = 0
+I2C_COMMON = false
 source "i2c/Kconfig.i2c"
 
 I2C_NUM = 1
+I2C_COMMON = false
 source "i2c/Kconfig.i2c"
 
 I2C_NUM = 2
+I2C_COMMON = I2C2_SCL1_SDA0
 source "i2c/Kconfig.i2c"
+
+config I2C2_SCL1_SDA0
+	bool "Use common configuration (SCL pin 1, SDA pin 0)"
+	depends on I2C2
 
 endmenu

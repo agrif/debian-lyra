@@ -1,3 +1,4 @@
 i2c0.dtso I2C0
 i2c1.dtso I2C1
-i2c2.dtso I2C2
+i2c2.dtso I2C2 && !(HAS_BASE_I2C2 && I2C2_SCL1_SDA0)
+disable-i2c2.dtso !I2C2 && HAS_BASE_I2C2
