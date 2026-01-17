@@ -36,6 +36,15 @@ class Failure(Resource):
 
 
 class Search(Resource):
+    class StopSearch(Exception):
+        def __init__(self, messages: list[str]):
+            super().__init__()
+            self._messages = messages
+
+        @property
+        def messages(self) -> list[str]:
+            return self._messages
+
     def __init__(self, resources: list[Resource], *banner: str):
         self._resources = resources
         self._banner = list(banner)
@@ -49,12 +58,19 @@ class Search(Resource):
 
     def check(self, ctx: contextlib.ExitStack) -> list[str]:
         messages = self._banner[:]
+        stop = False
         for r in self._resources:
-            ms = r.check(ctx)
+            try:
+                ms = r.check(ctx)
+            except self.StopSearch as e:
+                ms = e.messages
+                stop = True
             if not ms:
                 self._found = r
                 return []
             messages += [f' * {m}' for m in ms]
+            if stop:
+                break
         return messages
 
 
@@ -101,9 +117,9 @@ class ReadFile(_PathResource):
         if not self._path.exists():
             return [f'`{self._path}` does not exist']
         if not self._path.is_file():
-            return [f'`{self._path}` is not a file']
+            raise Search.StopSearch([f'`{self._path}` is not a file'])
         if not os.access(self._path, os.R_OK):
-            return [f'`{self._path}` is not readable']
+            raise Search.StopSearch([f'`{self._path}` is not readable'])
         return []
 
 
@@ -116,18 +132,20 @@ class WriteFile(_PathResource):
         if self._path.exists():
             if not self._path.is_file():
                 return [f'`{self._path}` is not a file']
+            if not os.access(self._path, os.R_OK):
+                raise Search.StopSearch([f'`{self._path}` is not readable'])
             if not os.access(self._path, os.W_OK):
-                return [f'`{self._path}` is not writeable']
+                raise Search.StopSearch([f'`{self._path}` is not writeable'])
             return []
 
         for parent in self._path.parents:
-            if not self._path.exists():
+            if not parent.exists():
                 if not self._makedirs:
                     return [f'`{self._path}` is not createable']
                 continue
-            if not self._path.is_dir():
+            if not parent.is_dir():
                 return [f'`{self._path}` is not createable']
-            if not os.access(self._path, os.W_OK):
+            if not os.access(parent, os.W_OK):
                 return [f'`{self._path}` is not writeable']
             return []
 
@@ -140,9 +158,9 @@ class ReadDir(_PathResource):
         if not self._path.exists():
             return [f'`{self._path}` does not exist']
         if not self._path.is_dir():
-            return [f'`{self._path}` is not a directory']
+            raise Search.StopSearch([f'`{self._path}` is not a directory'])
         if not os.access(self._path, os.R_OK):
-            return [f'`{self._path}` is not readable']
+            raise Search.StopSearch([f'`{self._path}` is not readable'])
         return []
 
 
@@ -155,18 +173,20 @@ class WriteDir(_PathResource):
         if self._path.exists():
             if not self._path.is_dir():
                 return [f'`{self._path}` is not a directory']
+            if not os.access(self._path, os.R_OK):
+                raise Search.StopSearch([f'`{self._path}` is not readable'])
             if not os.access(self._path, os.W_OK):
-                return [f'`{self._path}` is not writeable']
+                raise Search.StopSearch([f'`{self._path}` is not writeable'])
             return []
 
         for parent in self._path.parents:
-            if not self._path.exists():
+            if not parent.exists():
                 if not self._makedirs:
                     return [f'`{self._path}` is not createable']
                 continue
-            if not self._path.is_dir():
+            if not parent.is_dir():
                 return [f'`{self._path}` is not createable']
-            if not os.access(self._path, os.W_OK):
+            if not os.access(parent, os.W_OK):
                 return [f'`{self._path}` is not writeable']
             return []
 
