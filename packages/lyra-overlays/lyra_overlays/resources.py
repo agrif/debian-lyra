@@ -26,13 +26,13 @@ class Resource:
         if msgs:
             for m in msgs:
                 print(m)
-            return True
-        return False
+            return False
+        return True
 
     @classmethod
     def check_and_print_all(cls, ctx: contextlib.ExitStack,
                             resources: list['Resource']) -> bool:
-        failed = False
+        success = True
         needs_line = False
         for r in set(resources):
             msgs = r.check(ctx)
@@ -42,9 +42,9 @@ class Resource:
                     needs_line = False
                 for m in msgs:
                     print(m)
-                failed = True
+                success = False
                 needs_line = True
-        return failed
+        return success
 
 
 class Failure(Resource):

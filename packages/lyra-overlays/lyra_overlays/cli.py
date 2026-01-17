@@ -72,7 +72,7 @@ def main_with_ctx(ctx):
 
     src_res = discover.sources('-s/--sources', args.source)
     print()
-    if src_res.check_and_print(ctx):
+    if not src_res.check_and_print(ctx):
         print()
         sys.exit(1)
 
@@ -106,7 +106,7 @@ def main_with_ctx(ctx):
             resources += build.install_config_resources
         resources += build.install_build_resources
 
-    if Resource.check_and_print_all(ctx, resources):
+    if not Resource.check_and_print_all(ctx, resources):
         print()
         sys.exit(1)
 
