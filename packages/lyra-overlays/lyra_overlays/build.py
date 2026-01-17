@@ -1,8 +1,10 @@
+import contextlib
 import datetime
 import pathlib
 import shutil
 import subprocess
 import sys
+import typing
 
 import libfdt  # type: ignore
 
@@ -73,21 +75,45 @@ class Build:
             self.log('rm', p.name)
             p.unlink()
 
-    def install_with_header(self, header: str, src_path: pathlib.Path,
-                            dest_path: pathlib.Path) -> None:
+    @contextlib.contextmanager
+    def open_with_header(self, path: pathlib.Path, header: str,
+                         prefix: str = '') -> typing.Iterator[typing.IO[str]]:
+        with open(path, 'w') as dest:
+            lines = header.splitlines()
+
+            # trim blank first and last lines
+            if lines and lines[0].strip() == '':
+                del lines[0]
+            if lines and lines[-1].strip() == '':
+                del lines[-1]
+
+            # figure out the indentation of the first line
+            indent = ''
+            if lines:
+                indent = lines[0][0:-len(lines[0].lstrip())]
+
+            for line in lines:
+                if line.startswith(indent):
+                    line = line[len(indent):]
+
+                line = f'{prefix}{line.strip()}'
+                print(line, file=dest)
+
+            yield dest
+
+    def install_with_header(self, src_path: pathlib.Path,
+                            dest_path: pathlib.Path, header: str,
+                            prefix: str = '') -> None:
         with open(src_path) as src:
-            with open(dest_path, 'w') as dest:
-                for line in header.splitlines():
-                    line = f'# {line.strip()}'
-                    print(line, file=dest)
+            with self.open_with_header(
+                    dest_path, header, prefix=prefix) as dest:
                 print('', file=dest)
                 shutil.copyfileobj(src, dest)
 
-    def install_string(self, contents: str, dest_path: pathlib.Path) -> None:
-        with open(dest_path, 'w') as dest:
-            for line in contents.splitlines():
-                line = line.strip()
-                print(line, file=dest)
+    def install_string(self, path: pathlib.Path, contents: str,
+                       prefix: str = '') -> None:
+        with self.open_with_header(path, contents, prefix=prefix):
+            pass
 
 
 class Step:
@@ -338,12 +364,12 @@ class InstallOverlays(Step):
 
         backup_cfg = self._out.path / 'lyra-overlays.config.bak'
         build.log('install', backup_cfg)
-        build.install_with_header(
-            self._CONFIG_BACKUP_HEADER, build.local_cfg, backup_cfg)
+        build.install_with_header(build.local_cfg, backup_cfg,
+                                  self._CONFIG_BACKUP_HEADER, prefix='# ')
 
         output_readme = self._out.path / 'README'
         build.log('install', output_readme)
-        build.install_string(self._OUTPUT_README, output_readme)
+        build.install_string(output_readme, self._OUTPUT_README)
 
 
 class InstallConfig(Step):
@@ -366,5 +392,5 @@ class InstallConfig(Step):
             return
 
         build.log('install', self._cfg.path)
-        build.install_with_header(
-            self._CONFIG_INSTALL_HEADER, build.local_cfg, self._cfg.path)
+        build.install_with_header(build.local_cfg, self._cfg.path,
+                                  self._CONFIG_INSTALL_HEADER, prefix='# ')
