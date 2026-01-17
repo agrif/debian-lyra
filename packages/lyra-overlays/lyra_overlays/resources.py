@@ -29,6 +29,23 @@ class Resource:
             return True
         return False
 
+    @classmethod
+    def check_and_print_all(cls, ctx: contextlib.ExitStack,
+                            resources: list['Resource']) -> bool:
+        failed = False
+        needs_line = False
+        for r in set(resources):
+            msgs = r.check(ctx)
+            if msgs:
+                if needs_line:
+                    print()
+                    needs_line = False
+                for m in msgs:
+                    print(m)
+                failed = True
+                needs_line = True
+        return failed
+
 
 class Failure(Resource):
     def __init__(self, *messages: str):

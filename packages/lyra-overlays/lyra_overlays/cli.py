@@ -8,6 +8,7 @@ import tty
 
 from .build import Build
 from . import discover
+from .resources import Resource
 from .sources import Sources
 
 
@@ -105,16 +106,7 @@ def main_with_ctx(ctx):
             resources += build.install_config_resources
         resources += build.install_build_resources
 
-    failed = False
-    needs_line = False
-    for r in set(resources):
-        if needs_line:
-            print()
-            needs_line = False
-        if r.check_and_print(ctx):
-            needs_line = True
-            failed = True
-    if failed:
+    if Resource.check_and_print_all(ctx, resources):
         print()
         sys.exit(1)
 
