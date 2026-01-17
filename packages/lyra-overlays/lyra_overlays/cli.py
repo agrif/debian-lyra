@@ -6,13 +6,13 @@ import tempfile
 import termios
 import tty
 
-from .build import Build
+from . import build
 from . import discover
 from .resources import Resource
 from .sources import Sources
 
 
-def _read_one_char():
+def _read_one_char() -> str:
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     try:
@@ -22,12 +22,12 @@ def _read_one_char():
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
 
-def main():
+def main() -> None:
     with contextlib.ExitStack() as ctx:
         main_with_ctx(ctx)
 
 
-def main_with_ctx(ctx):
+def main_with_ctx(ctx: contextlib.ExitStack) -> None:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -71,8 +71,29 @@ def main_with_ctx(ctx):
         args.skip_config = True
 
     src_res = discover.sources('-s/--sources', args.source)
-    print()
-    if not src_res.check_and_print(ctx):
+    cfg = discover.config('-c/--config', args.config,
+                          write=not (args.dry_run or args.skip_config))
+    out = discover.output('-o/--output', args.output)
+    dt = discover.device_tree('-d/--device-tree', args.device_tree)
+
+    steps: list[build.Step] = []
+
+    steps += [build.Prepare(cfg=cfg)]
+    if not args.skip_config:
+        steps += [build.Config()]
+    steps += [build.Compile()]
+    if not args.skip_check:
+        steps += [build.Check(dt=dt)]
+    if not args.dry_run:
+        steps += [build.InstallOverlays(out=out)]
+        if not args.skip_config:
+            steps += [build.InstallConfig(cfg=cfg)]
+
+    resources = [src_res]
+    for step in steps:
+        resources += step.resources
+
+    if not Resource.check_and_print_all(ctx, resources):
         print()
         sys.exit(1)
 
@@ -84,69 +105,38 @@ def main_with_ctx(ctx):
         print()
         sys.exit(1)
 
-    cfg = discover.config('-c/--config', args.config, write=not args.dry_run)
-    out = discover.output('-o/--output', args.output)
-    dt = discover.device_tree('-d/--device-tree', args.device_tree)
-
     build_dir = ctx.enter_context(
         tempfile.TemporaryDirectory(prefix='lyra-overlays.'))
+    b = build.Build(pathlib.Path(build_dir), src)
 
-    build_dir = pathlib.Path(build_dir)
-    build = Build(build_dir, src=src, cfg=cfg, out=out, dt=dt)
+    running = True
+    while running:
+        running = False
+        b.clean()
 
-    resources = []
-    resources += build.prepare_resources
-    if not args.skip_config:
-        resources += build.configure_resources
-    resources += build.build_resources
-    if not args.skip_check:
-        resources += build.check_resources
-    if not args.dry_run:
-        if not args.skip_config:
-            resources += build.install_config_resources
-        resources += build.install_build_resources
+        try:
+            for step in steps:
+                step.run(b)
+        except build.Build.PromptReconfigure as e:
+            print('')
 
-    if not Resource.check_and_print_all(ctx, resources):
-        print()
-        sys.exit(1)
-
-    build.prepare()
-    if not args.skip_config:
-        build.configure()
-
-    build.build()
-    if not args.skip_check:
-        while not build.check():
-            print('', file=sys.stderr)
-
-            retry = False
             if not args.skip_config and not args.batch:
                 while True:
-                    print('Reconfigure [Y/n]? ', file=sys.stderr, end='')
-                    sys.stderr.flush()
+                    print('Reconfigure [Y/n]? ', end='')
+                    sys.stdout.flush()
                     y_or_n = _read_one_char()
                     if y_or_n.upper() not in 'YN\r\n':
-                        print('', file=sys.stderr)
-                        print('Please enter Y or N.', file=sys.stderr)
+                        print('')
+                        print('Please enter Y or N.')
                     else:
                         break
-                print(y_or_n, file=sys.stderr)
+                print(y_or_n)
                 if y_or_n.upper() in 'Y\r\n':
-                    retry = True
+                    running = True
 
-            if not retry:
-                print('ERROR: resolve these problems and retry.',
-                      file=sys.stderr)
+            if not running:
+                print(f'ERROR: {e}')
                 sys.exit(1)
-
-            build.configure()
-            build.clean()
-            build.build()
-
-    if not args.dry_run:
-        build.install_build()
-        if not args.skip_config:
-            build.install_config()
 
 
 if __name__ == '__main__':
