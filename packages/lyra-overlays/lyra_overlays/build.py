@@ -65,20 +65,29 @@ class Build:
         self._local_cfg = path / 'lyra-overlays.config'
         self._local_h = path / 'config.h'
         self._local_check = path / 'lyra-overlays-check.dtb'
-        self._backup_cfg = self._out.path / 'lyra-overlays.config.bak'
-        self._output_readme = self._out.path / 'README'
-
-        if self._cfg.exists():
-            self._src.olddefconfig(self._cfg.path, self._local_cfg)
-        else:
-            with open(self._local_cfg, 'w') as f:
-                f.write(self._cfg.generate_default())
 
         self._cfg_updated = False
         self._build_updated = False
 
     def _log(self, typ, line):
         print(f'  {typ.upper():7s} {line}')
+
+    @property
+    def prepare_resources(self):
+        return [self._cfg]
+
+    def prepare(self):
+        if not self._cfg_updated:
+            if self._cfg.exists():
+                self._src.olddefconfig(self._cfg.path, self._local_cfg)
+            else:
+                with open(self._local_cfg, 'w') as f:
+                    # FIXME default
+                    f.write('')
+
+    @property
+    def configure_resources(self):
+        return []
 
     def configure(self):
         self._src.menuconfig(self._local_cfg)
@@ -88,6 +97,10 @@ class Build:
         for p in self._path.glob('*.dtbo'):
             self._log('rm', p.name)
             p.unlink()
+
+    @property
+    def build_resources(self):
+        return []
 
     def build(self):
         self._src.genconfig(self._local_cfg, self._local_h)
@@ -113,6 +126,10 @@ class Build:
             cpp.stdout.close()
             if dts.wait():
                 sys.exit(1)
+
+    @property
+    def check_resources(self):
+        return [self._dt]
 
     def check(self):
         shutil.copyfile(self._dt.path, self._local_check)
@@ -219,14 +236,15 @@ class Build:
                 print('', file=dest)
                 shutil.copyfileobj(src, dest)
 
-    def install_build_check_permissions(self):
-        if not self._out.is_writeable():
-            return [self._out.path]
-        return []
+    @property
+    def install_build_resources(self):
+        return [self._out]
 
     def install_build(self):
         if not self._build_updated:
             return
+
+        self._out.path.mkdir(parents=True, exist_ok=True)
 
         for p in self._out.path.glob('*.dtbo'):
             self._log('rm', p)
@@ -239,20 +257,21 @@ class Build:
                 self._log('install', out_path)
                 shutil.copyfile(in_path, out_path)
 
-        self._log('install', self._backup_cfg)
+        backup_cfg = self._out.path / 'lyra-overlays.config.bak'
+        self._log('install', backup_cfg)
         self._install_with_header(
-            self._CONFIG_BACKUP_HEADER, self._local_cfg, self._backup_cfg)
+            self._CONFIG_BACKUP_HEADER, self._local_cfg, backup_cfg)
 
-        self._log('install', self._output_readme)
-        with open(self._output_readme, 'w') as out:
+        output_readme = self._out.path / 'README'
+        self._log('install', output_readme)
+        with open(output_readme, 'w') as out:
             for line in self._OUTPUT_README.splitlines():
                 line = line.strip()
                 print(line, file=out)
 
-    def install_config_check_permissions(self):
-        if not self._cfg.is_writeable():
-            return [self._cfg.path]
-        return []
+    @property
+    def install_config_resources(self):
+        return [self._cfg]
 
     def install_config(self):
         if not self._cfg_updated:

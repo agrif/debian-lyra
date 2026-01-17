@@ -1,6 +1,5 @@
 import argparse
 import contextlib
-import os
 import pathlib
 import sys
 import tempfile
@@ -8,7 +7,6 @@ import termios
 import tty
 
 from .build import Build
-from .devicetree import DeviceTree
 from . import discover
 from .sources import Sources
 
@@ -21,56 +19,6 @@ def _read_one_char():
         return sys.stdin.read(1)
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
-
-
-class Configuration:
-    def __init__(self, path):
-        self._path = path
-
-    @classmethod
-    def discover(cls):
-        return pathlib.Path('/etc/lyra-overlays.config')
-
-    @property
-    def path(self):
-        return self._path
-
-    def exists(self):
-        return self._path.is_file()
-
-    def is_writeable(self):
-        # best effort, this is a UI feature
-        if self.exists():
-            return os.access(self._path, os.W_OK)
-        return os.access(self._path.parent, os.W_OK)
-
-    def generate_default(self):
-        # FIXME
-        return ''
-
-
-class Output:
-    def __init__(self, path):
-        self._path = path
-
-    @classmethod
-    def discover(cls):
-        return pathlib.Path('/boot/overlays/lyra-overlays/')
-
-    @property
-    def path(self):
-        return self._path
-
-    def exists(self):
-        return self._path.is_dir()
-
-    def is_writeable(self):
-        # best effort, this is a UI feature
-        try:
-            os.makedirs(self._path, exist_ok=True)
-            return os.access(self._path, os.W_OK)
-        except Exception:
-            return False
 
 
 def main():
@@ -126,25 +74,9 @@ def main_with_ctx(ctx):
         sys.exit(1)
     src = Sources(src_res.path)
 
-    cfg_path = args.config if args.config else Configuration.discover()
-    cfg = Configuration(cfg_path)
-
-    out_path = args.output if args.output else Output.discover()
-    out = Output(out_path)
-
-    dt_path = args.device_tree if args.device_tree else DeviceTree.discover()
-    if not args.skip_check:
-        if not dt_path:
-            print('ERROR: could not find DT to check against',
-                  file=sys.stderr)
-            sys.exit(1)
-        dt = DeviceTree(dt_path)
-        if dt_path and not dt.exists():
-            print(f'ERROR: device tree does not exist: {dt_path}',
-                  file=sys.stderr)
-            sys.exit(1)
-    else:
-        dt = None
+    cfg = discover.config('-c/--config', args.config, write=not args.dry_run)
+    out = discover.output('-o/--output', args.output)
+    dt = discover.device_tree('-d/--device-tree', args.device_tree)
 
     build_dir = ctx.enter_context(
         tempfile.TemporaryDirectory(prefix='lyra-overlays.'))
@@ -152,24 +84,27 @@ def main_with_ctx(ctx):
     build_dir = pathlib.Path(build_dir)
     build = Build(build_dir, src=src, cfg=cfg, out=out, dt=dt)
 
+    resources = []
+    resources += build.prepare_resources
+    if not args.skip_config:
+        resources += build.configure_resources
+    resources += build.build_resources
+    if not args.skip_check:
+        resources += build.check_resources
     if not args.dry_run:
-        perms = []
         if not args.skip_config:
-            perms += build.install_config_check_permissions()
-        perms += build.install_build_check_permissions()
+            resources += build.install_config_resources
+        resources += build.install_build_resources
 
-        if perms:
-            print('ERROR: I need permission to write to the following:',
-                  file=sys.stderr)
-            print('', file=sys.stderr)
-            for fname in perms:
-                print('  ', fname, file=sys.stderr)
-            print('', file=sys.stderr)
-            print('You may want to run as root, or use options to',
-                  file=sys.stderr)
-            print('override those locations.', file=sys.stderr)
-            sys.exit(1)
+    failed = False
+    for r in set(resources):
+        if r.check_and_print(ctx):
+            print()
+            failed = True
+    if failed:
+        sys.exit(1)
 
+    build.prepare()
     if not args.skip_config:
         build.configure()
 

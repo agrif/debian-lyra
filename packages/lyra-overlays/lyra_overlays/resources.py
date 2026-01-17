@@ -15,6 +15,9 @@ class Resource:
     def path(self) -> pathlib.Path:
         raise NotImplementedError
 
+    def exists(self) -> bool:
+        return False
+
     def check(self, ctx: contextlib.ExitStack) -> list[str]:
         return []
 
@@ -45,9 +48,11 @@ class Search(Resource):
         def messages(self) -> list[str]:
             return self._messages
 
-    def __init__(self, resources: list[Resource], *banner: str):
+    def __init__(self, resources: list[Resource], banner: list[str],
+                 optional: bool = False):
         self._resources = resources
         self._banner = list(banner)
+        self._optional = optional
         self._found: Resource | None = None
 
     @property
@@ -55,6 +60,15 @@ class Search(Resource):
         if self._found is None:
             raise RuntimeError('must call check() first')
         return self._found.path
+
+    @property
+    def optional(self) -> bool:
+        return self._optional
+
+    def exists(self) -> bool:
+        if self._found is None:
+            return False
+        return self._found.exists()
 
     def check(self, ctx: contextlib.ExitStack) -> list[str]:
         messages = self._banner[:]
@@ -71,6 +85,8 @@ class Search(Resource):
             messages += [f' * {m}' for m in ms]
             if stop:
                 break
+        if self._optional:
+            return []
         return messages
 
 
@@ -84,6 +100,11 @@ class ReadModuleDir(Resource):
         if self._path is None:
             raise RuntimeError('must call check() first')
         return self._path
+
+    def exists(self) -> bool:
+        if self._path is None:
+            return False
+        return self._path.exists()
 
     def check(self, ctx: contextlib.ExitStack) -> list[str]:
         try:
@@ -110,6 +131,9 @@ class _PathResource(Resource):
     @property
     def path(self) -> pathlib.Path:
         return self._path
+
+    def exists(self) -> bool:
+        return self._path.exists()
 
 
 class ReadFile(_PathResource):

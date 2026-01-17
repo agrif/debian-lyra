@@ -1,33 +1,64 @@
+from collections.abc import Callable
 import pathlib
 
 from . import resources as res
 
 
+__all__ = ['config', 'device_tree', 'output', 'sources']
+
+
 def _generic(
         resource_name: str,
         option_name: str,
+        override_type: Callable[[pathlib.Path], res.Resource],
         override: str | None,
         base: list[res.Resource],
+        optional: bool = False,
 ) -> res.Resource:
 
     if override is None:
+        banner = [f'Could not find {resource_name}:']
         resources = [
             res.Failure(f'no {option_name} option provided'),
         ] + base
     else:
+        banner = [f'Could not use {resource_name} from {option_name}:']
         resources = [
-            res.ReadDir(override),
-            res.Failure(f'{option_name} provided, no other locations searched')
+            override_type(pathlib.Path(override)),
         ]
 
-    return res.Search(resources, f'Could not find {resource_name}:')
+    return res.Search(resources, banner, optional=optional)
+
+
+def config(option_name: str, override: str | None,
+           write: bool = False) -> res.Resource:
+
+    cls: type[res.ReadFile] | type[res.WriteFile] = res.ReadFile
+    if write:
+        cls = res.WriteFile
+
+    return _generic('configuration', option_name, cls, override, [
+        cls('/etc/lyra-overlays.config'),
+    ], optional=not write)
+
+
+def device_tree(option_name: str, override: str | None) -> res.Resource:
+    return _generic('base device tree', option_name, res.ReadFile, override, [
+        # FIXME
+    ])
+
+
+def output(option_name: str, override: str | None) -> res.Resource:
+    return _generic('output directory', option_name, res.WriteDir, override, [
+        res.WriteDir('/boot/overlays/lyra-overlays/', makedirs=True)
+    ])
 
 
 def sources(option_name: str, override: str | None) -> res.Resource:
     here = pathlib.Path(__file__)
     packaged = here.parent / 'overlays'
 
-    return _generic('overlay sources', option_name, override, [
+    return _generic('overlay sources', option_name, res.ReadDir, override, [
         res.ReadDir(packaged),
         res.ReadModuleDir('lyra_overlays.overlays'),
     ])
