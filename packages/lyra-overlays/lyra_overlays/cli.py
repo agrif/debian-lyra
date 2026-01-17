@@ -70,9 +70,18 @@ def main_with_ctx(ctx):
         args.skip_config = True
 
     src_res = discover.sources('-s/--sources', args.source)
+    print()
     if src_res.check_and_print(ctx):
+        print()
         sys.exit(1)
-    src = Sources(src_res.path)
+
+    try:
+        src = Sources(src_res.path)
+    except Sources.SyntaxError as e:
+        print('Error loading overlay source tree:')
+        print(str(e))
+        print()
+        sys.exit(1)
 
     cfg = discover.config('-c/--config', args.config, write=not args.dry_run)
     out = discover.output('-o/--output', args.output)
@@ -97,11 +106,16 @@ def main_with_ctx(ctx):
         resources += build.install_build_resources
 
     failed = False
+    needs_line = False
     for r in set(resources):
-        if r.check_and_print(ctx):
+        if needs_line:
             print()
+            needs_line = False
+        if r.check_and_print(ctx):
+            needs_line = True
             failed = True
     if failed:
+        print()
         sys.exit(1)
 
     build.prepare()

@@ -4,22 +4,30 @@ import os
 import pathlib
 import subprocess
 import sys
+import typing
 
-import kconfiglib  # type: ignore
+from kconfiglib import Kconfig, KconfigError  # type: ignore
 
 
-class LBuildError(Exception):
+__all__ = ['Rule', 'DtsoRule', 'SubdirRule', 'Sources']
+
+
+class KconfigWarning(Exception):
     pass
 
 
 @contextlib.contextmanager
-def _wrap_kconfig(kconfig, reset=True):
+def _wrap_kconfig(
+        kconfig: Kconfig,
+        reset: bool = True,
+) -> typing.Iterator[Kconfig]:
+
     """Wrap calls into kconfiglib to promote warnings to errors."""
     if reset:
         kconfig.warnings = []
     yield kconfig
     if kconfig.warnings:
-        raise RuntimeError('\n'.join(kconfig.warnings))
+        raise KconfigWarning('\n'.join(kconfig.warnings))
 
 
 @dataclasses.dataclass
@@ -27,13 +35,13 @@ class Rule:
     target: pathlib.Path
     condition: str | None
 
-    def is_active(self, kconfig):
+    def is_active(self, kconfig: Kconfig) -> bool:
         if self.condition:
             with _wrap_kconfig(kconfig):
                 return kconfig.eval_string(self.condition) > 0
         return True
 
-    def evaluate(self, kconfig):
+    def evaluate(self, kconfig: Kconfig) -> typing.Iterator['Rule']:
         if self.is_active(kconfig):
             yield self
 
@@ -41,7 +49,7 @@ class Rule:
 @dataclasses.dataclass
 class DtsoRule(Rule):
     @property
-    def output(self):
+    def output(self) -> str:
         return self.target.with_suffix('.dtbo').name
 
 
@@ -49,7 +57,7 @@ class DtsoRule(Rule):
 class SubdirRule(Rule):
     subrules: list[Rule]
 
-    def evaluate(self, kconfig):
+    def evaluate(self, kconfig: Kconfig) -> typing.Iterator[Rule]:
         yield from super().evaluate(kconfig)
         if self.is_active(kconfig):
             for rule in self.subrules:
@@ -57,28 +65,38 @@ class SubdirRule(Rule):
 
 
 class Sources:
-    def __init__(self, path):
+    class SyntaxError(Exception):
+        pass
+
+    class _SimpleSyntaxError(Exception):
+        pass
+
+    def __init__(self, path: pathlib.Path):
         self._path = path
         self._lbuild_path = path / 'Lbuild'
         self._kconfig_path = path / 'Kconfig'
 
-        os.environ['srctree'] = str(path)
-        self._kconfig = kconfiglib.Kconfig(self._kconfig_path.name,
-                                           warn_to_stderr=False)
-        with _wrap_kconfig(self._kconfig, reset=False):
-            pass
+        # unfortunately kconfiglib is a bit of a mess
+        try:
+            os.environ['srctree'] = str(path)
+            self._kconfig = Kconfig(self._kconfig_path.name,
+                                    warn_to_stderr=False)
+            with _wrap_kconfig(self._kconfig, reset=False):
+                pass
+        except (KconfigError, KconfigWarning) as e:
+            raise self.SyntaxError(str(e))
 
         self._lbuild = self._read_lbuild(path)
 
     @property
-    def path(self):
+    def path(self) -> pathlib.Path:
         return self._path
 
     @property
-    def include(self):
+    def include(self) -> pathlib.Path:
         return self._path / 'include'
 
-    def _read_lbuild(self, path):
+    def _read_lbuild(self, path: pathlib.Path) -> list[Rule]:
         lbuild_path = path / 'Lbuild'
         lbuild = []
         with open(lbuild_path) as f:
@@ -92,23 +110,29 @@ class Sources:
                 target, *expr = line.split()
                 try:
                     rule = self._parse_rule(path / target, ' '.join(expr))
-                except LBuildError:
+                except self.SyntaxError:
                     raise
-                except Exception as e:
-                    raise LBuildError(
-                        f'error at {lbuild_path}:{line_no + 1}') from e
+                except self._SimpleSyntaxError as e:
+                    relpath = lbuild_path.relative_to(self._path)
+                    raise self.SyntaxError(
+                        f'{relpath}:{line_no + 1}: {str(e)}') from e
 
                 lbuild.append(rule)
 
         return lbuild
 
-    def _parse_rule(self, target, condition):
+    def _parse_rule(self, target: pathlib.Path, condition: str | None) -> Rule:
         if not condition:
             condition = None
 
+        reltarget = target.relative_to(self._path)
+
         if condition:
-            with _wrap_kconfig(self._kconfig):
-                self._kconfig.eval_string(condition)
+            try:
+                with _wrap_kconfig(self._kconfig):
+                    self._kconfig.eval_string(condition)
+            except KconfigWarning as e:
+                raise self._SimpleSyntaxError(str(e)) from e
 
         if target.is_dir():
             subrules = self._read_lbuild(target)
@@ -117,35 +141,42 @@ class Sources:
             if target.suffix == '.dtso':
                 return DtsoRule(target, condition)
             else:
-                raise ValueError(f'no rules for file: {target}')
+                raise self._SimpleSyntaxError(
+                    f'no rules for file: {reltarget}')
         else:
-            raise ValueError(f'file does not exist: {target}')
+            raise self._SimpleSyntaxError(
+                f'file does not exist: {reltarget}')
 
-    def load_config(self, config_path):
+    def _load_config(self, config_path: pathlib.Path) -> Kconfig:
         with _wrap_kconfig(self._kconfig):
             self._kconfig.load_config(config_path)
         return self._kconfig
 
-    def get_active_rules(self, config_path):
-        self.load_config(config_path)
+    def get_active_rules(self,
+                         config_path: pathlib.Path) -> typing.Iterator[Rule]:
+        self._load_config(config_path)
         for rule in self._lbuild:
             yield from rule.evaluate(self._kconfig)
 
-    def _call_kconfig(self, name, config_path, *args):
+    def _call_kconfig(self, name: str, config_path: pathlib.Path,
+                      *args: str) -> None:
         env = os.environ.copy()
-        env['KCONFIG_CONFIG'] = config_path
+        env['KCONFIG_CONFIG'] = str(config_path)
         subprocess.run([sys.executable, '-m', name, *args],
                        env=env, check=True)
 
-    def genconfig(self, config_path, output_path):
-        self.load_config(config_path).write_autoconf(output_path)
+    def genconfig(self, config_path: pathlib.Path,
+                  output_path: pathlib.Path) -> None:
+        self._load_config(config_path).write_autoconf(output_path)
 
-    def menuconfig(self, config_path):
+    def menuconfig(self, config_path: pathlib.Path) -> None:
         self._call_kconfig('menuconfig', config_path)
-        self.load_config(config_path)
+        self._load_config(config_path)
 
-    def olddefconfig(self, config_path, output_path):
-        self.load_config(config_path).write_config(output_path)
+    def olddefconfig(self, config_path: pathlib.Path,
+                     output_path: pathlib.Path) -> None:
+        self._load_config(config_path).write_config(output_path)
 
-    def savedefconfig(self, config_path, output_path):
-        self.load_config(config_path).write_min_config(output_path)
+    def savedefconfig(self, config_path: pathlib.Path,
+                      output_path: pathlib.Path) -> None:
+        self._load_config(config_path).write_min_config(output_path)
