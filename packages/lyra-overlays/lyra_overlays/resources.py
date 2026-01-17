@@ -165,7 +165,7 @@ class ReadFile(_PathResource):
 
 
 class WriteFile(_PathResource):
-    def __init__(self, path, makedirs=False):
+    def __init__(self, path: pathlib.Path | str, makedirs: bool = False):
         super().__init__(path)
         self._makedirs = makedirs
 
@@ -206,7 +206,7 @@ class ReadDir(_PathResource):
 
 
 class WriteDir(_PathResource):
-    def __init__(self, path, makedirs=False):
+    def __init__(self, path: pathlib.Path | str, makedirs: bool = False):
         super().__init__(path)
         self._makedirs = makedirs
 

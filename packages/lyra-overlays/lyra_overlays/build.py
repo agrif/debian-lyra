@@ -29,7 +29,7 @@ class Build:
         self._cfg_updated = False
         self._dtbo_updated = False
 
-    def log(self, typ, line):
+    def log(self, typ: str, line: pathlib.Path | str) -> None:
         print(f'  {typ.upper():7s} {line}')
 
     @property
@@ -57,7 +57,7 @@ class Build:
         return self._cfg_updated
 
     @cfg_updated.setter
-    def cfg_updated(self, v) -> None:
+    def cfg_updated(self, v: bool) -> None:
         self._cfg_updated = v
 
     @property
@@ -65,7 +65,7 @@ class Build:
         return self._dtbo_updated
 
     @dtbo_updated.setter
-    def dtbo_updated(self, v) -> None:
+    def dtbo_updated(self, v: bool) -> None:
         self._dtbo_updated = v
 
     def clean(self) -> None:
@@ -316,7 +316,7 @@ class InstallOverlays(Step):
         self._out = out
 
     @property
-    def resources(self):
+    def resources(self) -> list[Resource]:
         return [self._out]
 
     def run(self, build: Build) -> None:
@@ -358,7 +358,7 @@ class InstallConfig(Step):
         self._cfg = cfg
 
     @property
-    def resources(self):
+    def resources(self) -> list[Resource]:
         return [self._cfg]
 
     def run(self, build: Build) -> None:
