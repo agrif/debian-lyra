@@ -3,23 +3,12 @@ import contextlib
 import pathlib
 import sys
 import tempfile
-import termios
-import tty
 
 from . import build
 from . import discover
+from . import interact
 from .resources import Resource
 from .sources import Sources
-
-
-def _read_one_char() -> str:
-    fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
-    try:
-        tty.setcbreak(fd)
-        return sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
 
 def main() -> None:
@@ -119,23 +108,12 @@ def main_with_ctx(ctx: contextlib.ExitStack) -> None:
                 step.run(b)
         except build.Build.PromptReconfigure as e:
             print('')
+            print(f'ERROR: {e}')
 
             if not args.skip_config and not args.batch:
-                while True:
-                    print('Reconfigure [Y/n]? ', end='')
-                    sys.stdout.flush()
-                    y_or_n = _read_one_char()
-                    if y_or_n.upper() not in 'YN\r\n':
-                        print('')
-                        print('Please enter Y or N.')
-                    else:
-                        break
-                print(y_or_n)
-                if y_or_n.upper() in 'Y\r\n':
-                    running = True
+                running = interact.prompt_yes_no('Reconfigure?')
 
             if not running:
-                print(f'ERROR: {e}')
                 sys.exit(1)
 
 
