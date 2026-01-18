@@ -6,9 +6,7 @@ import subprocess
 import sys
 import typing
 
-import libfdt  # type: ignore
-
-from .devicetree import DeviceTree
+from .devicetree import DeviceTree, Node
 from .resources import Resource
 from .sources import DtsoRule, Sources
 
@@ -221,33 +219,29 @@ class Check(Step):
                 build.log('check', rule.output)
                 self._overlay_dtbo(build.local_dt, build.path / rule.output)
 
-        check_dt = DeviceTree(build.local_dt)
+        check_dt = DeviceTree.open(build.local_dt)
         if not self._check_pins(check_dt):
             raise Build.PromptReconfigure('some pins used multiple times')
 
     def _check_pins(self, check_dt: DeviceTree) -> bool:
         pinmap: dict[str, list[tuple[str, str, str]]] = {}
-        symbols = {}
         names = {}
-        for dtb, node, props in check_dt.walk():
-            if node == '/__symbols__':
-                symbols = {v.as_str(): k for k, v in props.items()}
+        for node in check_dt.root.walk():
+            props = node.properties
+            if node.properties.get('status', b'okay\0') != b'okay\0':
                 continue
-            if 'status' in props and props['status'] != b'okay\0':
-                continue
-            for k in props:
+            for k in node.properties:
                 if not k.startswith('pinctrl-'):
                     continue
                 if k == 'pinctrl-names':
-                    names[node] = {
+                    names[node.path] = {
                         f'pinctrl-{i}': s
-                        for i, s in enumerate(props[k].as_stringlist())
+                        for i, s in enumerate(props[k].as_str_list())
                     }
                     continue
-                for phandle in props[k].as_list('I'):
-                    node_off = dtb.node_offset_by_phandle(phandle)
-                    self._check_pinctrl(
-                        check_dt, dtb, node_off, pinmap, node, k)
+                for phandle in props[k].as_uint32_list():
+                    pinctrl = check_dt.get_node_by_phandle(phandle)
+                    self._check_pinctrl(check_dt, pinctrl, pinmap, node, k)
 
         success = True
         for pin, users in pinmap.items():
@@ -274,12 +268,14 @@ class Check(Step):
             print('', file=sys.stderr)
             print(f'ERROR: pin {name} is used more than once:',
                   file=sys.stderr)
-            for (user, prop, pinctrl) in users:
+            for (user, prop, pinctrl_path) in users:
                 pinctrl_name = names.get(user, {}).get(prop)
                 pinctrl_name = f' ({pinctrl_name!r})'
-                if user in symbols:
-                    user = '&' + symbols[user]
-                print(f'  {user:20s} {prop}{pinctrl_name} {pinctrl}',
+                try:
+                    user = '&' + check_dt.get_symbols_by_path(user)[0]
+                except IndexError:
+                    pass
+                print(f'  {user:20s} {prop}{pinctrl_name} {pinctrl_path}',
                       file=sys.stderr)
 
         return success
@@ -287,30 +283,29 @@ class Check(Step):
     def _check_pinctrl(
             self,
             check_dt: DeviceTree,
-            dtb: libfdt.FdtRo,
-            node_off: int,
+            node: Node,
             pinmap: dict[str, list[tuple[str, str, str]]],
-            user: str,
+            user: Node,
             user_prop: str,
     ) -> None:
 
-        for dtb, node, props in check_dt.walk_node(dtb, node_off):
-            if 'rockchip,pins' not in props:
-                raise RuntimeError(f'pinctrl with no pins: {node}')
-            pins = props['rockchip,pins'].as_list('I')
-            if not len(pins) % 4 == 0:
-                raise RuntimeError(f'pinctrl with bad format: {node}')
-            for i in range(0, len(pins), 4):
-                pin = pins[i:i + 4]
+        if 'rockchip,pins' not in node.properties:
+            raise RuntimeError(f'pinctrl with no pins: {node.path}')
+        pins = node.properties['rockchip,pins'].as_uint32_list()
+        if not len(pins) % 4 == 0:
+            raise RuntimeError(f'pinctrl with bad format: {node.path}')
+        for i in range(0, len(pins), 4):
+            pin = pins[i:i + 4]
 
-                bank = pin[0]
-                letter = chr(ord('A') + pin[1] // 8)
-                number = pin[1] % 8
-                name = f'GPIO{bank}_{letter}{number}'
-                # function = pin[2]
-                # config = pin[3]
+            bank = pin[0]
+            letter = chr(ord('A') + pin[1] // 8)
+            number = pin[1] % 8
+            name = f'GPIO{bank}_{letter}{number}'
+            # function = pin[2]
+            # config = pin[3]
 
-                pinmap.setdefault(name, []).append((user, user_prop, node))
+            pinmap.setdefault(name, []).append(
+                (user.path, user_prop, node.path))
 
     def _overlay_dtbo(self, dtb: pathlib.Path, overlay: pathlib.Path) -> None:
         try:
