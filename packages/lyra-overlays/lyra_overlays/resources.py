@@ -188,11 +188,17 @@ class UBootMenu(Resource):
 
         # read the expression
         sh_proc = subprocess.run(
-            ['/bin/sh', '-c', f'. {read_config}; echo; echo {self._expr}'],
+            ['/bin/sh', '-c',
+             f'. {read_config}; echo lyra_sentinel; echo {self._expr}'],
             check=True, capture_output=True, env=env,
         )
-        path_str = sh_proc.stdout.decode('utf-8').splitlines()[-1]
-        path = pathlib.Path(path_str)
+        lines = sh_proc.stdout.decode('utf-8').splitlines()[-2:]
+        if len(lines[-2:]) != 2 or lines[-2] != 'lyra_sentinel':
+            if 'disabled' in '\n'.join(lines):
+                return ['u-boot-menu is disabled']
+            raise RuntimeError('unexpected output')
+
+        path = pathlib.Path(lines[-1])
 
         if not path.is_absolute():
             return [f'u-boot-menu: `{path}` is not absolute path']
