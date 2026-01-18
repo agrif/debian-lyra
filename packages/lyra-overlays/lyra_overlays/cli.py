@@ -72,7 +72,7 @@ def main_with(ctx: contextlib.ExitStack, args: argparse.Namespace) -> None:
 
     steps: list[build.Step] = []
 
-    steps += [build.Prepare(cfg=cfg)]
+    steps += [build.Prepare(cfg=cfg, dt=dt)]
     if not args.skip_config:
         steps += [build.Config()]
     steps += [build.Compile()]

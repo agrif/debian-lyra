@@ -124,12 +124,24 @@ class Step:
 
 
 class Prepare(Step):
-    def __init__(self, cfg: Resource):
+    _BOARD_MAP = {
+        'Luckfox Lyra': 'CONFIG_BOARD_LYRA',
+        'Luckfox Lyra Plus': 'CONFIG_BOARD_LYRA_PLUS',
+        'Luckfox Lyra Ultra': 'CONFIG_BOARD_LYRA_ULTRA',
+        'Luckfox Lyra Ultra W': 'CONFIG_BOARD_LYRA_ULTRA_W',
+        'Luckfox Lyra Zero W': 'CONFIG_BOARD_LYRA_ZERO_W',
+        'Luckfox Lyra Pi': 'CONFIG_BOARD_LYRA_PI',
+        'Luckfox Lyra Pi W': 'CONFIG_BOARD_LYRA_PI_W',
+    }
+
+    def __init__(self, cfg: Resource, dt: Resource):
         super().__init__()
         self._cfg = cfg
+        self._dt = dt
 
     @property
     def resources(self) -> list[Resource]:
+        # we do not *require* the device tree, just the config
         return [self._cfg]
 
     def run(self, build: Build) -> None:
@@ -137,9 +149,32 @@ class Prepare(Step):
             if self._cfg.exists():
                 build.src.olddefconfig(self._cfg.path, build.local_cfg)
             else:
+                model = self._guess_model()
+                if model is None:
+                    print('WARNING: could not guess board.')
+                    print('Using generic board to initialize config.')
+                    initial = ''
+                else:
+                    initial = f'{self._BOARD_MAP[model]}=y'
+
                 with open(build.local_cfg, 'w') as f:
-                    # FIXME default
-                    f.write('')
+                    f.write(initial)
+
+    def _guess_model(self) -> str | None:
+        if self._dt.exists():
+            try:
+                tree = DeviceTree.open(self._dt.path)
+                return tree.root.properties['model'].as_str()
+            except Exception:
+                pass
+
+        try:
+            with open('/proc/device-tree/model') as f:
+                return f.read().rstrip('\x00')
+        except Exception:
+            pass
+
+        return None
 
 
 class Config(Step):
