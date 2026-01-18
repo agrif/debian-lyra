@@ -44,7 +44,19 @@ def config(option_name: str, override: str | None,
 
 def device_tree(option_name: str, override: str | None) -> res.Resource:
     return _generic('base device tree', option_name, res.ReadFile, override, [
-        # FIXME
+        # following logic in u-boot-update
+        res.UBootMenu(
+            res.ReadFile,
+            '${U_BOOT_FDT}',
+        ),
+        res.UBootMenu(
+            res.ReadFile,
+            '${_BOOT_PATH}${U_BOOT_FDT_DIR}${_VERSION}/${U_BOOT_FDT}',
+        ),
+        res.UBootMenu(
+            res.ReadFile,
+            '${_BOOT_PATH}/${U_BOOT_FDT:-dtb-${_VERSION}}',
+        ),
     ])
 
 

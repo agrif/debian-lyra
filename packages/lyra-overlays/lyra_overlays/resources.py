@@ -2,11 +2,13 @@ import contextlib
 import importlib.resources
 import os
 import pathlib
+import subprocess
+import typing
 
 
 __all__ = [
-    'Resource', 'Failure', 'Search', 'ReadModuleDir', 'ReadFile', 'WriteFile',
-    'ReadDir', 'WriteDir',
+    'Resource', 'Failure', 'Search', 'ReadModuleDir', 'UBootMenu',
+    'ReadFile', 'WriteFile', 'ReadDir', 'WriteDir',
 ]
 
 
@@ -104,6 +106,9 @@ class Search(Resource):
                 break
         if self._optional:
             return []
+
+        # remove duplicates
+        messages = list({m: None for m in messages}.keys())
         return messages
 
 
@@ -138,6 +143,66 @@ class ReadModuleDir(Resource):
             return [f'module `{self._module}` is not a directory']
 
         self._path = path
+        return []
+
+
+class UBootMenu(Resource):
+    def __init__(self, inner: typing.Callable[[pathlib.Path], Resource],
+                 expr: str):
+        self._inner = inner
+        self._expr = expr
+        self._found: Resource | None = None
+
+    @property
+    def path(self) -> pathlib.Path:
+        if self._found is None:
+            raise RuntimeError('must call check() first')
+        return self._found.path
+
+    def exists(self) -> bool:
+        if self._found is None:
+            return False
+        return self._found.exists()
+
+    def check(self, ctx: contextlib.ExitStack) -> list[str]:
+        # make sure u-boot-menu is installed
+        read_config = pathlib.Path('/usr/share/u-boot-menu/read-config')
+        if not read_config.exists():
+            return ['u-boot-menu is not installed']
+
+        try:
+            return self._check_uboot(ctx, read_config)
+        except Exception as e:
+            return [f'failed to query u-boot-menu: {e}']
+
+    def _check_uboot(self, ctx: contextlib.ExitStack,
+                     read_config: pathlib.Path) -> list[str]:
+        # get kernel version
+        uname_proc = subprocess.run(['uname', '-r'],
+                                    check=True, capture_output=True)
+        uname = uname_proc.stdout.decode('utf-8').strip()
+
+        # set up extra variables
+        env = os.environ.copy()
+        env['_VERSION'] = uname
+
+        # read the expression
+        sh_proc = subprocess.run(
+            ['/bin/sh', '-c', f'. {read_config}; echo; echo {self._expr}'],
+            check=True, capture_output=True, env=env,
+        )
+        path_str = sh_proc.stdout.decode('utf-8').splitlines()[-1]
+        path = pathlib.Path(path_str)
+
+        if not path.is_absolute():
+            return [f'u-boot-menu: `{path}` is not absolute path']
+
+        found = self._inner(path)
+        msgs = found.check(ctx)
+        if msgs:
+            return [f'u-boot-menu: {m}' for m in msgs]
+
+        self._found = found
         return []
 
 
