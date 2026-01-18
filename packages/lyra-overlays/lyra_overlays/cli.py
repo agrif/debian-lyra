@@ -11,12 +11,15 @@ from .resources import Resource
 from .sources import Sources
 
 
+__all__ = ['main', 'argument_parser', 'main_with']
+
+
 def main() -> None:
     with contextlib.ExitStack() as ctx:
-        main_with_ctx(ctx)
+        main_with(ctx, argument_parser().parse_args())
 
 
-def main_with_ctx(ctx: contextlib.ExitStack) -> None:
+def argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -53,8 +56,10 @@ def main_with_ctx(ctx: contextlib.ExitStack) -> None:
         help='override device tree to test against',
     )
 
-    args = parser.parse_args()
+    return parser
 
+
+def main_with(ctx: contextlib.ExitStack, args: argparse.Namespace) -> None:
     # batch implies skipping config
     if args.batch:
         args.skip_config = True
