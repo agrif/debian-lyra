@@ -42,3 +42,7 @@ build-backend = 'setuptools.build_meta'
 
 [tool.setuptools.packages.find]
 include = ['lyra_overlays']
+
+[tool.mypy]
+packages = ['lyra_overlays']
+disallow_untyped_defs = true
