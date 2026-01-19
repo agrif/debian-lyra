@@ -91,6 +91,7 @@ def main_with(ctx: contextlib.ExitStack, args: argparse.Namespace) -> None:
 
     if not Resource.check_and_print_all(ctx, resources):
         print()
+        print('ERROR: either specify custom paths, or run as root.')
         sys.exit(1)
 
     try:
