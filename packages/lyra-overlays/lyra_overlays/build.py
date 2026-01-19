@@ -14,7 +14,7 @@ from .sources import DtsoRule, Sources
 __all__ = [
     'Build', 'Step',
     'Prepare', 'Config', 'Compile', 'Check',
-    'InstallOverlays', 'InstallConfig',
+    'InstallOverlays', 'InstallConfig', 'InstallUBoot',
 ]
 
 
@@ -424,3 +424,60 @@ class InstallConfig(Step):
         build.log('install', self._cfg.path)
         build.install_with_header(build.local_cfg, self._cfg.path,
                                   self._CONFIG_INSTALL_HEADER, prefix='# ')
+
+
+class InstallUBoot(Step):
+    _CONFIG_INSTALL_HEADER = f"""
+    THIS FILE IS GENERATED. ({datetime.datetime.now().isoformat()})
+
+    If you wish to edit this file, use the lyra-overlays tool.
+    """
+
+    def __init__(self, out_uboot: Resource):
+        super().__init__()
+        self._out_uboot = out_uboot
+
+    @property
+    def resources(self) -> list[Resource]:
+        return [self._out_uboot]
+
+    def run(self, build: Build) -> None:
+        if not build.dtbo_updated:
+            return
+
+        self._out_uboot.path.mkdir(parents=True, exist_ok=True)
+
+        overlays = []
+        for rule in build.src.get_active_rules(build.local_cfg):
+            if isinstance(rule, DtsoRule):
+                overlays.append(rule.output)
+
+        conf = self._out_uboot.path / '30-lyra-overlays.conf'
+        overlays_str = ''.join(f' lyra-overlays/{o}' for o in overlays)
+        key = 'U_BOOT_FDT_OVERLAYS'
+
+        build.log('install', conf)
+        with build.open_with_header(conf, self._CONFIG_INSTALL_HEADER,
+                                    prefix='# ') as out:
+            print('', file=out)
+            print(f'{key}="${{{key}}}{overlays_str}"', file=out)
+
+        # bail early if we don't run u-boot-update
+        if self._out_uboot.path != pathlib.Path('/etc/u-boot-menu/conf.d'):
+            return
+
+        try:
+            subprocess.run(['u-boot-update'], check=True)
+        except subprocess.CalledProcessError:
+            sys.exit(1)
+
+        print('')
+        if overlays:
+            print('The following overlays are installed:')
+            for overlay in overlays:
+                print(f' * {overlay}')
+            print('')
+        else:
+            print('No overlays managed by this tool are installed.')
+        print('You must reboot for these changes to take effect.')
+        print('')

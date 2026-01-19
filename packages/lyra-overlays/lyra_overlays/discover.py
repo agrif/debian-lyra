@@ -61,9 +61,22 @@ def device_tree(option_name: str, override: str | None) -> res.Resource:
 
 
 def output(option_name: str, override: str | None) -> res.Resource:
-    return _generic('output directory', option_name, res.WriteDir, override, [
-        res.WriteDir('/boot/overlays/lyra-overlays/', makedirs=True)
-    ])
+    return _generic(
+        'overlay output directory', option_name, res.WriteDir, override, [
+            res.WriteDir('/boot/overlays/lyra-overlays/', makedirs=True),
+        ],
+    )
+
+
+def output_uboot(option_name: str, override: str | None) -> res.Resource:
+    return _generic(
+        'u-boot-menu output directory', option_name, res.WriteDir, override, [
+            res.UBootMenu(
+                lambda path: res.WriteDir(path, makedirs=True),
+                '/etc/u-boot-menu/conf.d/',
+            ),
+        ],
+    )
 
 
 def sources(option_name: str, override: str | None) -> res.Resource:

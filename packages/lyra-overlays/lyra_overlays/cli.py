@@ -49,7 +49,7 @@ def argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         '-o', '--output', type=pathlib.Path,
-        help='override output path for overlays',
+        help='override output path for overlays and u-boot-menu configuration',
     )
     parser.add_argument(
         '-d', '--device-tree', type=pathlib.Path,
@@ -68,6 +68,7 @@ def main_with(ctx: contextlib.ExitStack, args: argparse.Namespace) -> None:
     cfg = discover.config('-c/--config', args.config,
                           write=not (args.dry_run or args.skip_config))
     out = discover.output('-o/--output', args.output)
+    out_uboot = discover.output_uboot('-o/--output', args.output)
     dt = discover.device_tree('-d/--device-tree', args.device_tree)
 
     steps: list[build.Step] = []
@@ -82,6 +83,7 @@ def main_with(ctx: contextlib.ExitStack, args: argparse.Namespace) -> None:
         steps += [build.InstallOverlays(out=out)]
         if not args.skip_config:
             steps += [build.InstallConfig(cfg=cfg)]
+        steps += [build.InstallUBoot(out_uboot=out_uboot)]
 
     resources = [src_res]
     for step in steps:

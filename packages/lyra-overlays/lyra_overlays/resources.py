@@ -23,8 +23,14 @@ class Resource:
     def check(self, ctx: contextlib.ExitStack) -> list[str]:
         return []
 
+    def check_nonstop(self, ctx: contextlib.ExitStack) -> list[str]:
+        try:
+            return self.check(ctx)
+        except Search.StopSearch as stop:
+            return stop.messages
+
     def check_and_print(self, ctx: contextlib.ExitStack) -> bool:
-        msgs = self.check(ctx)
+        msgs = self.check_nonstop(ctx)
         if msgs:
             for m in msgs:
                 print(m)
@@ -36,8 +42,9 @@ class Resource:
                             resources: list['Resource']) -> bool:
         success = True
         needs_line = False
-        for r in set(resources):
-            msgs = r.check(ctx)
+        # deduplicate resources
+        for r in {r: None for r in resources}.keys():
+            msgs = r.check_nonstop(ctx)
             if msgs:
                 if needs_line:
                     print()
@@ -204,7 +211,7 @@ class UBootMenu(Resource):
             return [f'u-boot-menu: `{path}` is not absolute path']
 
         found = self._inner(path)
-        msgs = found.check(ctx)
+        msgs = found.check_nonstop(ctx)
         if msgs:
             return [f'u-boot-menu: {m}' for m in msgs]
 
