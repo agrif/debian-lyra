@@ -63,7 +63,18 @@ def device_tree(option_name: str, override: str | None) -> res.Resource:
 def output(option_name: str, override: str | None) -> res.Resource:
     return _generic(
         'overlay output directory', option_name, res.WriteDir, override, [
-            res.WriteDir('/boot/overlays/lyra-overlays/', makedirs=True),
+            # following logic in u-boot-update
+            res.UBootMenu(
+                # do *not* makedirs here, only use this if the versioned
+                # base path exists
+                lambda path: res.WriteDir(path, makedirs=False),
+                '${_BOOT_PATH}/${U_BOOT_FDT_OVERLAYS_DIR}${_VERSION}'
+                + '/lyra-overlays/',
+            ),
+            res.UBootMenu(
+                lambda path: res.WriteDir(path, makedirs=True),
+                '${_BOOT_PATH}/${U_BOOT_FDT_OVERLAYS_DIR}/lyra-overlays/',
+            ),
         ],
     )
 
