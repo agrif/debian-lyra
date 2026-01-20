@@ -12,5 +12,5 @@ U_BOOT_PARAMETERS="earlycon=uart8250,mmio32,0xff0a0000 console=tty1 console=ttyS
 U_BOOT_TIMEOUT="20"
 U_BOOT_FDT="$DEVICETREE"
 U_BOOT_SYNC_DTBS="true"
-U_BOOT_FDT_OVERLAYS_DIR="/overlays"
+U_BOOT_FDT_OVERLAYS_DIR="/overlays/"
 EOF
