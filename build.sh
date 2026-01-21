@@ -173,7 +173,14 @@ build_uboot() (
 
     # prepare u-boot
     make mrproper
-    make CROSS-COMPILE=arm-linux-gnueabihf- luckfox-lyra-rk3506_defconfig
+
+    # we want to use this, but it seems to be desync'd right now
+    # (it prompts for OPTEE_TZDRAM_SIZE at build time, always)
+    #make CROSS-COMPILE=arm-linux-gnueabihf- luckfox-lyra-rk3506_defconfig
+
+    # so instead, use the same config with the default values selected
+    cp $R/configs/u-boot/luckfox-lyra-rk3506_defconfig .config
+    make CROSS_COMPILE=arm-linux-gnueabihf- olddefconfig
 
     # build u-boot (rk3506b)
     make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
