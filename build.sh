@@ -85,58 +85,58 @@ get_board_config() {
         lyra)
             BOARD_DESCRIPTION="Luckfox Lyra (A, B)"
             BOARD_NAME="luckfox-lyra"
-            BOARD_UBOOT="u-boot-rk3506g.bin"
+            BOARD_UBOOT="u-boot-lyra-plus.bin"
             BOARD_DT="rk3506g-luckfox-lyra.dtb"
             ;;
         lyra-plus)
             BOARD_DESCRIPTION="Luckfox Lyra Plus (Ethernet)"
             BOARD_NAME="luckfox-lyra-plus"
-            BOARD_UBOOT="u-boot-rk3506g.bin"
+            BOARD_UBOOT="u-boot-lyra-plus.bin"
             BOARD_DT="rk3506g-luckfox-lyra-plus.dtb"
             ;;
         lyra-ultra)
             BOARD_DESCRIPTION="Luckfox Lyra Ultra"
             BOARD_NAME="luckfox-lyra-ultra"
-            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_UBOOT="u-boot-lyra-ultra.bin"
             BOARD_DT="rk3506b-luckfox-lyra-ultra.dtb"
             ;;
         lyra-ultra-w)
             BOARD_DESCRIPTION="Luckfox Lyra Ultra W (Wireless)"
             BOARD_NAME="luckfox-lyra-ultra-w"
-            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_UBOOT="u-boot-lyra-ultra.bin"
             BOARD_DT="rk3506b-luckfox-lyra-ultra-w.dtb"
             BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
         lyra-zero-w)
             BOARD_DESCRIPTION="Luckfox Lyra Zero W (Wireless)"
             BOARD_NAME="luckfox-lyra-zero-w"
-            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_UBOOT="u-boot-lyra-zero-w.bin"
             BOARD_DT="rk3506b-luckfox-lyra-zero-w.dtb"
             BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
         lyra-pi-a)
             BOARD_DESCRIPTION="Luckfox Lyra Pi A (eMMC)"
             BOARD_NAME="luckfox-lyra-pi-a"
-            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_UBOOT="u-boot-lyra-pi.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi.dtb"
             ;;
         lyra-pi-a-w)
             BOARD_DESCRIPTION="Luckfox Lyra Pi A W (eMMC, Wireless)"
             BOARD_NAME="luckfox-lyra-pi-a-w"
-            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_UBOOT="u-boot-lyra-pi.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi-w.dtb"
             BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
         lyra-pi-b)
             BOARD_DESCRIPTION="Luckfox Lyra Pi B (SD)"
             BOARD_NAME="luckfox-lyra-pi-b"
-            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_UBOOT="u-boot-lyra-pi.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi-sd.dtb"
             ;;
         lyra-pi-b-w)
             BOARD_DESCRIPTION="Luckfox Lyra Pi B W (SD, Wireless)"
             BOARD_NAME="luckfox-lyra-pi-b-w"
-            BOARD_UBOOT="u-boot-rk3506b.bin"
+            BOARD_UBOOT="u-boot-lyra-pi.bin"
             BOARD_DT="rk3506b-luckfox-lyra-pi-w-sd.dtb"
             BOARD_PACKAGES="[linux-headers-lyra, aic8800-usb-dkms]"
             ;;
@@ -179,20 +179,45 @@ build_uboot() (
     #make CROSS-COMPILE=arm-linux-gnueabihf- luckfox-lyra-rk3506_defconfig
 
     # so instead, use the same config with the default values selected
+    # (and all)
     cp $R/configs/u-boot/luckfox-lyra-rk3506_defconfig .config
     make CROSS_COMPILE=arm-linux-gnueabihf- olddefconfig
 
-    # build u-boot (rk3506b)
-    make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
-         ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506b_ddr_750MHz_v1.06.bin \
-         TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
-    cp u-boot-rockchip.bin $B/parts/u-boot-rk3506b.bin
+    # we build multiple u-boots for multiple device trees, to be able
+    # to do fun things like usb boot or network boot.
+    # (this *should* use different configs, once configs work)
 
-    # build u-boot (rk3506g)
+    # build u-boot (lyra plus)
+    ./scripts/config --set-str OF_LIST rk3506-luckfox-lyra-plus \
+                     --set-str DEFAULT_DEVICE_TREE rk3506-luckfox-lyra-plus
     make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
          ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506_ddr_750MHz_v1.06.bin \
          TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
-    cp u-boot-rockchip.bin $B/parts/u-boot-rk3506g.bin
+    cp u-boot-rockchip.bin $B/parts/u-boot-lyra-plus.bin
+
+    # build u-boot (lyra ultra)
+    ./scripts/config --set-str OF_LIST rk3506b-luckfox-lyra-ultra \
+                     --set-str DEFAULT_DEVICE_TREE rk3506b-luckfox-lyra-ultra
+    make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
+         ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506b_ddr_750MHz_v1.06.bin \
+         TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
+    cp u-boot-rockchip.bin $B/parts/u-boot-lyra-ultra.bin
+
+    # build u-boot (lyra zero w)
+    ./scripts/config --set-str OF_LIST rk3506b-luckfox-lyra-zero-w \
+                     --set-str DEFAULT_DEVICE_TREE rk3506b-luckfox-lyra-zero-w
+    make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
+         ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506b_ddr_750MHz_v1.06.bin \
+         TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
+    cp u-boot-rockchip.bin $B/parts/u-boot-lyra-zero-w.bin
+
+    # build u-boot (lyra pi)
+    ./scripts/config --set-str OF_LIST rk3506b-luckfox-lyra-pi \
+                     --set-str DEFAULT_DEVICE_TREE rk3506b-luckfox-lyra-pi
+    make -j${JOBS} CROSS_COMPILE=arm-linux-gnueabihf- \
+         ROCKCHIP_TPL=../rkbin/bin/rk35/rk3506b_ddr_750MHz_v1.06.bin \
+         TEE=../rkbin/bin/rk35/rk3506_tee_v2.10.bin
+    cp u-boot-rockchip.bin $B/parts/u-boot-lyra-pi.bin
 )
 
 #
