@@ -8,16 +8,83 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
+#include <linux/remoteproc.h>
+
+struct rk3506_rproc {
+	void __iomem *fw_mem;
+	struct resource *fw_mem_res;
+};
+
+static int rk3506_rproc_start(struct rproc *rproc)
+{
+	dev_info(&rproc->dev, "start\n");
+	return 0;
+}
+
+static int rk3506_rproc_stop(struct rproc *rproc)
+{
+	dev_info(&rproc->dev, "stop\n");
+	return 0;
+}
+
+static void rk3506_rproc_kick(struct rproc *rproc, int vqid)
+{
+	dev_info(&rproc->dev, "kick %i\n", vqid);
+}
+
+static void *rk3506_rproc_da_to_va(struct rproc *rproc, u64 da, size_t len,
+				   bool *is_iomem)
+{
+	dev_info(&rproc->dev, "da_to_va da=%llu len=%zu\n", da, len);
+	return NULL;
+}
+
+static const struct rproc_ops rk3506_rproc_ops = {
+	.start		= rk3506_rproc_start,
+	.stop		= rk3506_rproc_stop,
+	.kick		= rk3506_rproc_kick,
+	.da_to_va	= rk3506_rproc_da_to_va,
+};
 
 static int rk3506_rproc_probe(struct platform_device *pdev)
 {
-	dev_info(&pdev->dev, "probe");
-	return -ENODEV;
+	struct device *dev = &pdev->dev;
+	struct device_node *np = dev->of_node;
+	const char *fw_name;
+	struct rproc *rproc;
+	struct rk3506_rproc *ddata;
+	int ret;
+
+	/* This is rproc_of_parse_firmware in remoteproc_internal.h */
+	ret = of_property_read_string(np, "firmware-name", &fw_name);
+	if (ret < 0 && ret != -EINVAL)
+		return ret;
+
+	rproc = devm_rproc_alloc(dev, np->name, &rk3506_rproc_ops, fw_name,
+				 sizeof(*ddata));
+	if (!rproc)
+		return -ENOMEM;
+
+	ddata = rproc->priv;
+
+	ddata->fw_mem = devm_platform_get_and_ioremap_resource(
+		pdev, 0, &ddata->fw_mem_res);
+	if (IS_ERR(ddata->fw_mem))
+		return dev_err_probe(dev, PTR_ERR(ddata->fw_mem),
+				     "failed to map firmware memory\n");
+
+	ret = devm_rproc_add(dev, rproc);
+	if (ret)
+		return ret;
+
+	dev_info(dev, "probe fw_name: %s fw: %zx - %zx\n",
+		 fw_name, ddata->fw_mem_res->start, ddata->fw_mem_res->end);
+	return 0;
 }
 
 static void rk3506_rproc_remove(struct platform_device *pdev)
 {
-	dev_info(&pdev->dev, "remove");
+	dev_info(&pdev->dev, "remove\n");
 }
 
 static const struct of_device_id rk3506_rproc_match[] = {

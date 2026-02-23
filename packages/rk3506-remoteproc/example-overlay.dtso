@@ -1,0 +1,14 @@
+&{/} {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	m0_rproc: m0@fff81000 {
+		compatible = "rockchip,rk3506-rproc";
+
+		// where to load the firmware
+		reg = <0xfff81000 0xb000>;
+
+		// what firmware file to load
+		firmware-name = "rk3506-rproc.elf";
+	};
+};
