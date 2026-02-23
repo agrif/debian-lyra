@@ -12,7 +12,7 @@
 
 struct rk3506_rproc {
 	void __iomem *fw_mem;
-	struct resource *fw_mem_res;
+	struct resource *fw_res;
 };
 
 static int rk3506_rproc_start(struct rproc *rproc)
@@ -35,7 +35,17 @@ static void rk3506_rproc_kick(struct rproc *rproc, int vqid)
 static void *rk3506_rproc_da_to_va(struct rproc *rproc, u64 da, size_t len,
 				   bool *is_iomem)
 {
-	dev_info(&rproc->dev, "da_to_va da=%llu len=%zu\n", da, len);
+	struct rk3506_rproc *ddata = rproc->priv;
+	struct resource *fw_res = ddata->fw_res;
+
+	dev_info(&rproc->dev, "da_to_va da=%llx len=%zu\n", da, len);
+
+	if (da + len <= fw_res->end - fw_res->start + 1) {
+		if (is_iomem)
+			*is_iomem = true;
+		return ddata->fw_mem + da;
+	}
+
 	return NULL;
 }
 
@@ -67,8 +77,8 @@ static int rk3506_rproc_probe(struct platform_device *pdev)
 
 	ddata = rproc->priv;
 
-	ddata->fw_mem = devm_platform_get_and_ioremap_resource(
-		pdev, 0, &ddata->fw_mem_res);
+	ddata->fw_mem = devm_platform_get_and_ioremap_resource(pdev, 0,
+							       &ddata->fw_res);
 	if (IS_ERR(ddata->fw_mem))
 		return dev_err_probe(dev, PTR_ERR(ddata->fw_mem),
 				     "failed to map firmware memory\n");
@@ -78,7 +88,7 @@ static int rk3506_rproc_probe(struct platform_device *pdev)
 		return ret;
 
 	dev_info(dev, "probe fw_name: %s fw: %zx - %zx\n",
-		 fw_name, ddata->fw_mem_res->start, ddata->fw_mem_res->end);
+		 fw_name, ddata->fw_res->start, ddata->fw_res->end);
 	return 0;
 }
 
