@@ -1,0 +1,7 @@
+/.*.cmd
+/Module.symvers
+/modules.order
+/rk3506_remoteproc.ko
+/rk3506_remoteproc.o
+/rk3506_remoteproc.mod
+/rk3506_remoteproc.mod.*
