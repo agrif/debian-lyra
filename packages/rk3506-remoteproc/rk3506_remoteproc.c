@@ -183,7 +183,6 @@ static void rk3506_rproc_remove(struct platform_device *pdev)
 
 static const struct of_device_id rk3506_rproc_match[] = {
 	{ .compatible = "rockchip,rk3506-rproc" },
-	{ .compatible = "rockchip,rk3506-mcu" }, // FIXME remove
 	{},
 };
 MODULE_DEVICE_TABLE(of, rk3506_rproc_match);
