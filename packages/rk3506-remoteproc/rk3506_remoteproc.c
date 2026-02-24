@@ -7,42 +7,47 @@
 
 #include <linux/arm-smccc.h>
 #include <linux/clk.h>
-#include <linux/io.h>
+#include <linux/mfd/syscon.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
+#include <linux/regmap.h>
 #include <linux/remoteproc.h>
 #include <linux/reset.h>
 
-/* Register locations */
-#define RK3506_PMU_BASE		0xff900000
+#include "hw_bitfield.h"
 
 /* SMC call constants */
 #define SIP_MCU_CFG					0x82000028
 #define ROCKCHIP_SIP_CONFIG_BUSMCU_0_ID			0x00
 #define ROCKCHIP_SIP_CONFIG_MCU_CODE_START_ADDR		0x01
 
+/* PMU registers and fields */
+#define PMU_INT_MASK_CON	0x000c
+#define   GLB_INT_MASK_MCU	BIT(1)
+#define   MCU_RST_DIS_CFG	BIT(2)
+
 struct rk3506_rproc {
+	struct regmap *pmu;
+
 	void __iomem *fw_mem;
 	struct resource *fw_res;
 
 	struct reset_control *resets;
 	struct clk_bulk_data *clks;
 	int num_clks;
-
-	// FIXME should use syscon phandle
-	u8 *pmu;
 };
 
 static void rk3506_rproc_set_enabled(struct rk3506_rproc *ddata, bool en)
 {
-	// PMU[0x00C] = PMU_INT_MASK_CON
 	if (en)
-		// mcu_rst_dis_cfg=1, glb_int_mask-mcu=0
-		writel(0x00060004, ddata->pmu + 0x00c);
+		regmap_write(ddata->pmu, PMU_INT_MASK_CON,
+			     FIELD_PREP_WM16(MCU_RST_DIS_CFG, 1) |
+			     FIELD_PREP_WM16(GLB_INT_MASK_MCU, 0));
 	else
-		// mcu_rst_dis_cfg=0, glb_int_mask_mcu=1
-		writel(0x00060002, ddata->pmu + 0x00c);
+		regmap_write(ddata->pmu, PMU_INT_MASK_CON,
+			     FIELD_PREP_WM16(MCU_RST_DIS_CFG, 0) |
+			     FIELD_PREP_WM16(GLB_INT_MASK_MCU, 1));
 }
 
 static int rk3506_rproc_start(struct rproc *rproc)
@@ -143,6 +148,12 @@ static int rk3506_rproc_probe(struct platform_device *pdev)
 
 	ddata = rproc->priv;
 
+	/* Grab handles to register blocks we need. */
+	ddata->pmu = syscon_regmap_lookup_by_phandle(np, "rockchip,pmu");
+	if (IS_ERR(ddata->pmu))
+		return dev_err_probe(dev, PTR_ERR(ddata->pmu),
+				     "failed to get PMU");
+
 	/* Map memory where firmware will be loaded. */
 	ddata->fw_mem = devm_platform_get_and_ioremap_resource(pdev, 0,
 							       &ddata->fw_res);
@@ -158,12 +169,6 @@ static int rk3506_rproc_probe(struct platform_device *pdev)
 	ddata->resets = devm_reset_control_array_get_exclusive(dev);
 	if (IS_ERR(ddata->resets))
 		return PTR_ERR(ddata->resets);
-
-	/* Map control registers. */
-	ddata->pmu = devm_ioremap(dev, RK3506_PMU_BASE, 0x1000);
-	if (IS_ERR(ddata->pmu))
-		return dev_err_probe(dev, PTR_ERR(ddata->pmu),
-				     "failed to map PMU\n");
 
 	/* We're ready to go. */
 	ret = devm_rproc_add(dev, rproc);

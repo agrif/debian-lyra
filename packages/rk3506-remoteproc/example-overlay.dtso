@@ -10,6 +10,9 @@
 	m0_rproc: m0@fff81000 {
 		compatible = "rockchip,rk3506-rproc";
 
+		// links to required register blocks
+		rockchip,pmu = <&pmu>;
+
 		// where to load the firmware
 		reg = <0xfff81000 0xb000>;
 
@@ -27,5 +30,11 @@
 		// * SRST_M0_JTAG: JTAG interface reset
 		// * SRST_HRESETN_M0_AC: ?????
 		resets = <&cru SRST_H_M0>, <&cru SRST_M0_JTAG>, <&cru SRST_HRESETN_M0_AC>;
+	};
+
+	// missing from the stock DTs
+	pmu: syscon@ff900000 {
+		compatible = "rockchip,rk3506-pmu", "syscon", "simple-mfd";
+		reg = <0xff900000 0x10000>;
 	};
 };
