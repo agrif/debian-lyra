@@ -5,3 +5,5 @@
 /rk3506_remoteproc.o
 /rk3506_remoteproc.mod
 /rk3506_remoteproc.mod.*
+/example-overlay.dtbo
+/.example-overlay.dtbo.*
