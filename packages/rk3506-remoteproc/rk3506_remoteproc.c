@@ -5,24 +5,90 @@
  * Author: Aaron Griffith <aargri@gmail.com>
  */
 
+#include <linux/arm-smccc.h>
+#include <linux/clk.h>
+#include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/remoteproc.h>
+#include <linux/reset.h>
+
+/* Register locations */
+#define RK3506_PMU_BASE		0xff900000
+
+/* SMC call constants */
+#define SIP_MCU_CFG					0x82000028
+#define ROCKCHIP_SIP_CONFIG_BUSMCU_0_ID			0x00
+#define ROCKCHIP_SIP_CONFIG_MCU_CODE_START_ADDR		0x01
 
 struct rk3506_rproc {
 	void __iomem *fw_mem;
 	struct resource *fw_res;
+
+	struct reset_control *resets;
+	struct clk_bulk_data *clks;
+	int num_clks;
+
+	// FIXME should use syscon phandle
+	u8 *pmu;
 };
+
+static void rk3506_rproc_set_enabled(struct rk3506_rproc *ddata, bool en)
+{
+	// PMU[0x00C] = PMU_INT_MASK_CON
+	if (en)
+		// mcu_rst_dis_cfg=1, glb_int_mask-mcu=0
+		writel(0x00060004, ddata->pmu + 0x00c);
+	else
+		// mcu_rst_dis_cfg=0, glb_int_mask_mcu=1
+		writel(0x00060002, ddata->pmu + 0x00c);
+}
 
 static int rk3506_rproc_start(struct rproc *rproc)
 {
+	struct rk3506_rproc *ddata = rproc->priv;
+	struct device *dev = &rproc->dev;
+	int ret;
+	struct arm_smccc_res res;
+
+	/* Stop the processor if it's running to force a reset. */
+	rk3506_rproc_set_enabled(ddata, false);
+
+	ret = clk_bulk_prepare_enable(ddata->num_clks, ddata->clks);
+	if (ret) {
+		dev_err(dev, "failed to enable clocks\n");
+		return ret;
+	}
+
+	ret = reset_control_deassert(ddata->resets);
+	if (ret) {
+		dev_err(dev, "failed to deassert resets\n");
+		return ret;
+	}
+
+	arm_smccc_smc(SIP_MCU_CFG, ROCKCHIP_SIP_CONFIG_BUSMCU_0_ID,
+		      ROCKCHIP_SIP_CONFIG_MCU_CODE_START_ADDR,
+		      ddata->fw_res->start, 0, 0, 0, 0, &res);
+	if (res.a0) {
+		dev_err(dev, "failed to set start address\n");
+		return -EIO;
+	}
+
+	rk3506_rproc_set_enabled(ddata, true);
+
 	dev_info(&rproc->dev, "start\n");
 	return 0;
 }
 
 static int rk3506_rproc_stop(struct rproc *rproc)
 {
+	struct rk3506_rproc *ddata = rproc->priv;
+
+	rk3506_rproc_set_enabled(ddata, false);
+	reset_control_assert(ddata->resets);
+	clk_bulk_disable_unprepare(ddata->num_clks, ddata->clks);
+
 	dev_info(&rproc->dev, "stop\n");
 	return 0;
 }
@@ -77,16 +143,34 @@ static int rk3506_rproc_probe(struct platform_device *pdev)
 
 	ddata = rproc->priv;
 
+	/* Map memory where firmware will be loaded. */
 	ddata->fw_mem = devm_platform_get_and_ioremap_resource(pdev, 0,
 							       &ddata->fw_res);
 	if (IS_ERR(ddata->fw_mem))
 		return dev_err_probe(dev, PTR_ERR(ddata->fw_mem),
 				     "failed to map firmware memory\n");
 
+	/* Grab all clocks and resets. */
+	ddata->num_clks = devm_clk_bulk_get_all(dev, &ddata->clks);
+	if (ddata->num_clks < 0)
+		return ddata->num_clks;
+
+	ddata->resets = devm_reset_control_array_get_exclusive(dev);
+	if (IS_ERR(ddata->resets))
+		return PTR_ERR(ddata->resets);
+
+	/* Map control registers. */
+	ddata->pmu = devm_ioremap(dev, RK3506_PMU_BASE, 0x1000);
+	if (IS_ERR(ddata->pmu))
+		return dev_err_probe(dev, PTR_ERR(ddata->pmu),
+				     "failed to map PMU\n");
+
+	/* We're ready to go. */
 	ret = devm_rproc_add(dev, rproc);
 	if (ret)
 		return ret;
 
+	platform_set_drvdata(pdev, rproc);
 	dev_info(dev, "probe fw_name: %s fw: %zx - %zx\n",
 		 fw_name, ddata->fw_res->start, ddata->fw_res->end);
 	return 0;

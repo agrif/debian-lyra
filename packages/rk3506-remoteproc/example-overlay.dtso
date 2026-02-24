@@ -1,6 +1,8 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/clock/rockchip,rk3506-cru.h>
+
 &{/} {
 	#address-cells = <1>;
 	#size-cells = <1>;
@@ -13,5 +15,17 @@
 
 		// what firmware file to load
 		firmware-name = "rk3506-rproc.elf";
+
+		// clocks to use:
+		// * HCLK_M0: main clock for M0
+		// * STCLK_M0: systick clock
+		// * SWCLKTCK_M0: debug interface clock (currently not defined)
+		clocks = <&cru HCLK_M0>, <&cru STCLK_M0>;
+
+		// resets to use:
+		// * SRST_H_M0: memory bus reset for M0 (?)
+		// * SRST_M0_JTAG: JTAG interface reset
+		// * SRST_HRESETN_M0_AC: ?????
+		resets = <&cru SRST_H_M0>, <&cru SRST_M0_JTAG>, <&cru SRST_HRESETN_M0_AC>;
 	};
 };
