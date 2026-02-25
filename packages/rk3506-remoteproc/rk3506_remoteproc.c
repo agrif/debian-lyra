@@ -7,6 +7,7 @@
 
 #include <linux/arm-smccc.h>
 #include <linux/clk.h>
+#include <linux/mailbox_client.h>
 #include <linux/mfd/syscon.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -14,6 +15,7 @@
 #include <linux/regmap.h>
 #include <linux/remoteproc.h>
 #include <linux/reset.h>
+#include <soc/rockchip/rockchip-mailbox.h>
 
 #include "hw_bitfield.h"
 
@@ -36,6 +38,9 @@ struct rk3506_rproc {
 	struct reset_control *resets;
 	struct clk_bulk_data *clks;
 	int num_clks;
+
+	struct mbox_client mbox_cl;
+	struct mbox_chan *mbox;
 };
 
 static void rk3506_rproc_set_enabled(struct rk3506_rproc *ddata, bool en)
@@ -120,6 +125,15 @@ static void *rk3506_rproc_da_to_va(struct rproc *rproc, u64 da, size_t len,
 	return NULL;
 }
 
+static void rk3506_rproc_mbox_rx(struct mbox_client *cl, void *data)
+{
+	struct rockchip_mbox_msg *msg = data;
+	/*struct rk3506_rproc *ddata =
+	  container_of(cl, struct rk3506_rproc, mbox_cl);*/
+
+	dev_info(cl->dev, "mbox_rx cmd=%x data=%x\n", msg->cmd, msg->data);
+}
+
 static const struct rproc_ops rk3506_rproc_ops = {
 	.start		= rk3506_rproc_start,
 	.stop		= rk3506_rproc_stop,
@@ -170,19 +184,39 @@ static int rk3506_rproc_probe(struct platform_device *pdev)
 	if (IS_ERR(ddata->resets))
 		return PTR_ERR(ddata->resets);
 
+	/* Set up mailbox client. */
+	ddata->mbox_cl.dev = dev;
+	ddata->mbox_cl.tx_block = true;
+	ddata->mbox_cl.tx_tout = 100;
+	ddata->mbox_cl.rx_callback = rk3506_rproc_mbox_rx;
+	ddata->mbox = mbox_request_channel(&ddata->mbox_cl, 0);
+	if (IS_ERR(ddata->mbox))
+		return dev_err_probe(dev, PTR_ERR(ddata->mbox),
+				     "failed to get mailbox\n");
+
 	/* We're ready to go. */
 	ret = devm_rproc_add(dev, rproc);
 	if (ret)
-		return ret;
+		goto free_mbox;
 
 	platform_set_drvdata(pdev, rproc);
 	dev_info(dev, "probe fw_name: %s fw: %zx - %zx\n",
 		 fw_name, ddata->fw_res->start, ddata->fw_res->end);
 	return 0;
+
+free_mbox:
+	mbox_free_channel(ddata->mbox);
+
+	return ret;
 }
 
 static void rk3506_rproc_remove(struct platform_device *pdev)
 {
+	struct rproc *rproc = platform_get_drvdata(pdev);
+	struct rk3506_rproc *ddata = rproc->priv;
+
+	mbox_free_channel(ddata->mbox);
+
 	dev_info(&pdev->dev, "remove\n");
 }
 
